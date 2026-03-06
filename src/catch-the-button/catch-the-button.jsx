@@ -215,6 +215,7 @@ class CatchTheButtonGame extends Component {
           <RS.Card style={{ width: '18rem', background: '#111', border: '1px solid #333', color: '#666', pointerEvents: 'auto' }}>
             <RS.CardBody className="text-center">
               <p>마우스가 닿으면 무조건 도망칩니다.</p>
+              <p>PC라시면 스페이스바도 작동합니다.</p>
               <p>모바일이시라면 우측 상단의<br/><strong style={{color:'#ff4757'}}>모바일 모드</strong>를 켜주세요!</p>
             </RS.CardBody>
           </RS.Card>
