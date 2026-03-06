@@ -1,25 +1,26 @@
-/* App.css */
-
-/* 전체 배경 및 폰트 설정 */
-body {
+/* 1. 화면 전체 너비 확보 및 여백 제거 */
+html, body {
   margin: 0;
-  background-color: #f2f4f6; /* 심플한 연한 회색 배경 */
+  padding: 0;
+  width: 100%;
+  background-color: #f2f4f6;
   font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", Roboto, "Noto Sans KR", sans-serif;
-  color: #191f28; /* 완전 검은색보다 눈이 편안한 진한 회색 */
+  color: #191f28;
 }
 
-/* 로비 컨테이너 (수직/수평 완벽 중앙 정렬) */
+/* 2. 최상위 요소에서 무조건 좌우 중앙으로 밀어주기 */
+#root {
+  width: 100%;
+  display: flex;
+  justify-content: center; /* 화면이 아무리 커져도 컨테이너를 정중앙에 배치 */
+}
+
+/* 3. 로비 컨테이너 */
 .lobby-container {
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 800px; /* PC에서 최대 크기 제한 */
   padding: 40px 20px;
-  
-  /* --- 새로 추가된 중앙 정렬 속성 --- */
-  min-height: 100vh;           /* 화면의 100% 높이를 차지하도록 설정 */
-  display: flex;               /* Flexbox 레이아웃 사용 */
-  flex-direction: column;      /* 내부 요소들을 위에서 아래로 배치 */
-  justify-content: center;     /* 수직(위아래) 기준 중앙 정렬 */
-  box-sizing: border-box;      /* 패딩을 포함해 100vh가 넘지 않도록 방지 */
+  box-sizing: border-box; /* 패딩 때문에 너비가 틀어지는 것 방지 */
 }
 
 /* 상단 타이틀 */
@@ -36,19 +37,20 @@ body {
   margin: 0;
 }
 
-/* 게임 리스트 그리드 */
+/* 4. 게임 리스트 (Grid 대신 Flex로 확실하게 가운데 모으기) */
 .game-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  display: flex;
+  flex-wrap: wrap;         /* 화면이 좁아지면 자동으로 아래로 내려감 */
+  justify-content: center; /* 카드들을 항상 가운데 정렬 */
   gap: 24px;
-  /* 카드들을 수평 중앙으로 모으기 위해 추가 */
-  justify-content: center; 
 }
 
 /* 개별 게임 카드 */
 .game-card {
+  width: 100%;
+  max-width: 340px; /* 카드가 무한정 커지지 않도록 크기 고정 */
   background-color: #ffffff;
-  border-radius: 24px; /* 심플 스타일의 과감하고 둥근 모서리 */
+  border-radius: 24px;
   overflow: hidden;
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
@@ -67,19 +69,19 @@ body {
 .image-wrapper {
   width: 100%;
   height: 200px;
-  background-color: #e5e8eb; /* 이미지 로딩 전 플레이스홀더 색상 */
+  background-color: #e5e8eb;
   overflow: hidden;
 }
 
 .image-wrapper img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* 이미지가 찌그러지지 않고 꽉 차게 렌더링 */
+  object-fit: cover;
   transition: transform 0.3s ease;
 }
 
 .game-card:hover .image-wrapper img {
-  transform: scale(1.05); /* 마우스 올렸을 때 사진이 살짝 커지는 효과 */
+  transform: scale(1.05);
 }
 
 /* 카드 하단 텍스트 및 버튼 영역 */
@@ -100,7 +102,7 @@ body {
 /* 심플한 스타일의 옅은 블루 버튼 */
 .start-btn {
   background-color: #e8f3ff;
-  color: #3182f6; /* 심플 블루 포인트 컬러 */
+  color: #3182f6;
   border: none;
   padding: 10px 18px;
   border-radius: 12px;
