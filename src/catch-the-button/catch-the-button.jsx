@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
+import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.css';
 import './catch-the-button.css';
 import * as RS from 'reactstrap';
 
-class App extends Component {
+class CatchTheButtonGame extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -109,7 +110,16 @@ class App extends Component {
   render() {
     return (
       <div style={{ height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: '#000', color: '#fff', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 20, width: '100%', textAlign: 'center' }}>
+        
+        {/* 뒤로 가기 버튼 추가 */}
+        <button 
+          onClick={() => this.props.navigate('/')} 
+          style={{ position: 'absolute', top: '20px', left: '20px', padding: '10px 16px', backgroundColor: '#3182f6', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', zIndex: 10000, boxShadow: '0 4px 6px rgba(0,0,0,0.5)' }}
+        >
+          ⬅️ 메인으로
+        </button>
+
+        <div style={{ position: 'absolute', top: 20, width: '100%', textAlign: 'center', pointerEvents: 'none' }}>
           <h1 style={{ color: 'cyan' }}>CATCH THE BUTTON</h1>
           <h3>SCORE: {this.state.successCount}</h3>
         </div>
@@ -145,4 +155,10 @@ class App extends Component {
   }
 }
 
-export default App;                                              
+// React Router Hooks를 Class Component에서 사용하기 위한 Wrapper
+const App = () => {
+  const navigate = useNavigate();
+  return <CatchTheButtonGame navigate={navigate} />;
+};
+
+export default App;

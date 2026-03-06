@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './brock-brick.css';
 
 const App = () => {
@@ -7,6 +8,8 @@ const App = () => {
   const [isCleared, setIsCleared] = useState(false);
   const [attempts, setAttempts] = useState(1);
   const [timeElapsed, setTimeElapsed] = useState(0);
+  
+  const navigate = useNavigate(); // 라우터 이동 함수 추가
 
   const isHoveringRestartRef = useRef(false);
 
@@ -187,12 +190,11 @@ const App = () => {
     return () => cancelAnimationFrame(animationFrameId);
   }, []);
 
-  // 마우스 이동 (반응형 화면에 맞춘 좌표 보정)
   const handleMouseMove = (e) => {
     const canvas = canvasRef.current;
     if (!canvas || isCleared) return;
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width; // CSS 크기와 실제 캔버스 해상도의 비율 계산
+    const scaleX = canvas.width / rect.width; 
     const relativeX = (e.clientX - rect.left) * scaleX;
     const state = gameState.current;
     
@@ -201,7 +203,6 @@ const App = () => {
     }
   };
 
-  // 터치 이동 (반응형 화면에 맞춘 좌표 보정)
   const handleTouchMove = (e) => {
     const canvas = canvasRef.current;
     if (!canvas || isCleared) return;
@@ -226,7 +227,15 @@ const App = () => {
 
   return (
     <div className="app-container">
-      <div className="header-info">
+      {/* 뒤로 가기 버튼 추가 */}
+      <button 
+        onClick={() => navigate('/')} 
+        style={{ position: 'absolute', top: '20px', left: '20px', padding: '10px 16px', backgroundColor: '#3182f6', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', zIndex: 100, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+      >
+        ⬅️ 메인으로
+      </button>
+
+      <div className="header-info" style={{ marginTop: '60px' }}>
         <h1>블럭 깨기</h1>
         <div className="stats">
           <div>시간: {timeElapsed}초</div>
@@ -237,7 +246,7 @@ const App = () => {
       <div className="canvas-wrapper">
         <canvas
           ref={canvasRef}
-          width={480} // 캔버스의 내부 해상도는 고정
+          width={480} 
           height={320}
           onMouseMove={handleMouseMove}
           onTouchMove={handleTouchMove}
