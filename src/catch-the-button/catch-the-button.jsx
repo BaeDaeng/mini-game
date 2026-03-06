@@ -73,7 +73,7 @@ class CatchTheButtonGame extends Component {
     if (this.state.isMobileMode) {
       // 1. 모바일 모드: 일정한 속도로 계속 튕김 (마찰력 무시)
       const speed = Math.sqrt(this.velX * this.velX + this.velY * this.velY);
-      const targetSpeed = 20; // 버튼이 날아다니는 속도 (높일수록 어려워집니다)
+      const targetSpeed = 20; // 버튼이 날아다니는 기본 속도
       
       if (speed === 0) {
         this.velX = targetSpeed;
@@ -90,7 +90,6 @@ class CatchTheButtonGame extends Component {
         this.velX += Math.cos(angle) * force;
         this.velY += Math.sin(angle) * force;
       }
-      // PC 모드일 때만 마찰력을 적용해 천천히 멈추게 함
       this.velX *= 0.85;
       this.velY *= 0.85;
     }
@@ -99,24 +98,66 @@ class CatchTheButtonGame extends Component {
     this.posX += this.velX;
     this.posY += this.velY;
 
-    // 3. 화면 밖 이탈 완벽 방지 (리사이즈 시에도 즉각 복귀)
+    // 3. 화면 밖 이탈 완벽 방지 및 랜덤 바운스 계산
+    let hitWall = false; // 벽에 부딪혔는지 체크하는 변수
+
     if (this.posY <= TOP_MARGIN) {
-      this.posY = TOP_MARGIN; // 윗벽(85px)을 뚫고 나가면 강제로 끌어내림
-      this.velY *= this.state.isMobileMode ? -1 : -1.2;
+      this.posY = TOP_MARGIN;
+      if (this.state.isMobileMode) {
+        this.velY = Math.abs(this.velY); // 무조건 아래로 튕김
+        hitWall = true;
+      } else {
+        this.velY *= -1.2;
+      }
     } else if (this.posY + btnH >= window.innerHeight) {
-      this.posY = window.innerHeight - btnH; // 바닥을 뚫으면 강제로 끌어올림
-      this.velY *= this.state.isMobileMode ? -1 : -1.2;
+      this.posY = window.innerHeight - btnH;
+      if (this.state.isMobileMode) {
+        this.velY = -Math.abs(this.velY); // 무조건 위로 튕김
+        hitWall = true;
+      } else {
+        this.velY *= -1.2;
+      }
     }
 
     if (this.posX <= 0) {
       this.posX = 0;
-      this.velX *= this.state.isMobileMode ? -1 : -1.2;
+      if (this.state.isMobileMode) {
+        this.velX = Math.abs(this.velX); // 무조건 오른쪽으로 튕김
+        hitWall = true;
+      } else {
+        this.velX *= -1.2;
+      }
     } else if (this.posX + btnW >= window.innerWidth) {
       this.posX = window.innerWidth - btnW;
-      this.velX *= this.state.isMobileMode ? -1 : -1.2;
+      if (this.state.isMobileMode) {
+        this.velX = -Math.abs(this.velX); // 무조건 왼쪽으로 튕김
+        hitWall = true;
+      } else {
+        this.velX *= -1.2;
+      }
     }
 
-    // DOM 직접 업데이트
+    // 🔥 핵심: 모바일 모드에서 벽에 부딪혔을 때 각도를 랜덤하게 비틀기
+    if (this.state.isMobileMode && hitWall) {
+      const targetSpeed = 12; // 속도는 유지
+      let angle = Math.atan2(this.velY, this.velX); // 현재 정상적인 반사각
+
+      // ±45도(PI/4) 범위 내에서 랜덤하게 노이즈를 줌
+      const noise = (Math.random() - 0.5) * (Math.PI / 2);
+      angle += noise;
+
+      // 비틀어진 새로운 각도로 속도 재설정
+      this.velX = Math.cos(angle) * targetSpeed;
+      this.velY = Math.sin(angle) * targetSpeed;
+
+      // [안전장치] 노이즈 때문에 다시 벽을 파고드는 방향이 되었다면 절댓값으로 무조건 화면 안쪽으로 꺾어줌
+      if (this.posY === TOP_MARGIN && this.velY < 0) this.velY = Math.abs(this.velY);
+      if (this.posY === window.innerHeight - btnH && this.velY > 0) this.velY = -Math.abs(this.velY);
+      if (this.posX === 0 && this.velX < 0) this.velX = Math.abs(this.velX);
+      if (this.posX === window.innerWidth - btnW && this.velX > 0) this.velX = -Math.abs(this.velX);
+    }
+
+    // 4. DOM 직접 업데이트 (화면 그리기)
     if (this.btnRef.current) {
       this.btnRef.current.style.left = `${this.posX}px`;
       this.btnRef.current.style.top = `${this.posY}px`;
@@ -128,12 +169,21 @@ class CatchTheButtonGame extends Component {
     }
   };
 
-  handleSuccess = () => {
+  handleSuccess = (e) => {
+    // 클릭이나 터치 이벤트로 실행됐을 때 브라우저 기본 동작 막기
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+
     alert("🎯 잡았다! 대단해요!");
     this.setState({ successCount: this.state.successCount + 1 });
-    // 잡았을 때 잠깐 멈춤
     this.velX = 0;
     this.velY = 0;
+
+    // 🔥 핵심 해결책: 버튼을 잡은 직후에 포커스(Focus)를 강제로 해제!
+    if (this.btnRef.current) {
+      this.btnRef.current.blur();
+    }
   };
 
   render() {
