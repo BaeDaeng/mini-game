@@ -40,12 +40,14 @@ html, body {
 }
 
 .header h2 {
-  font-size: 26px; /* h1보다 작게 설정 */
-  font-weight: 600; /* 약간 두툼하게 */
-  color: #4e5968;  
-  margin-top: 4px; /* h1과의 간격 */
-  margin-bottom: 0;
-  letter-spacing: -0.3px;
+  display: inline-block; /* 텍스트 크기만큼만 배경색 적용 */
+  font-size: 18px;
+  font-weight: 700;
+  color: #3182f6;     
+  background-color: #e8f3ff; /* 연한 블루 배경 */
+  padding: 4px 12px;
+  border-radius: 8px;  /* 둥근 모서리 */
+  margin-top: 8px;
 }
 
 /* 4. 게임 리스트 (Grid 대신 Flex로 확실하게 가운데 모으기) */

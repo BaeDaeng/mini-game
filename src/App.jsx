@@ -5,6 +5,7 @@ import CatchButton from './catch-the-button/catch-the-button';
 import SuikaGame from './suika-game/suika-game'; 
 import StackBlock from './stack-the-block/stack-the-block';
 import BalloonUp from './balloon-up/balloon-up';
+import RaccoonSurvival from './raccoon-survival/raccoon-survival';
 import './App.css';
 
 // 메인 로비 화면 컴포넌트
@@ -14,7 +15,7 @@ const MainLobby = () => {
   return (
     <div className="lobby-container">
       <header className="header">
-        <h1>mini-game</h1>
+        <h1>Mini-Game</h1>
         <h2>Swipe Up!!! 아래에도 있어요</h2>
       </header>
 
@@ -74,6 +75,17 @@ const MainLobby = () => {
           </div>
         </div>
 
+        {/* 5. 라쿤서바이벌 카드 */}
+        <div className="game-card" onClick={() => navigate('/raccoon')}>
+          <div className="image-wrapper">
+            <img src="/images/raccoon-survival.png" alt="라쿤서바이벌 미리보기" />
+          </div>
+          <div className="card-info">
+            <h2>라쿤서바이벌</h2>
+            <button className="start-btn">시작하기</button>
+          </div>
+        </div>
+
       </main>
     </div>
   );
@@ -90,6 +102,7 @@ const App = () => {
         <Route path="/suika" element={<SuikaGame />} />
         <Route path="/stackb" element={<StackBlock />} />
         <Route path="/balloon" element={<BalloonUp />} />
+        <Route path="/raccoon" element={<RaccoonSurvival />} />
       </Routes>
     </Router>
   );
