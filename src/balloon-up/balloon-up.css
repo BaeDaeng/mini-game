@@ -1,0 +1,109 @@
+.balloon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f9fafb;
+  font-family: -apple-system, sans-serif;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 10px 15px;
+  background: white;
+  border: 1px solid #e5e8eb;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  z-index: 10;
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.timer-badge {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #191f28;
+}
+
+.best-record {
+  color: #8b95a1;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.canvas-area {
+  position: relative;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  border: 1px solid #f2f4f6;
+  /* 마우스가 영역에 들어오면 십자 모양으로 변경 */
+  cursor: crosshair; 
+  width: 100%;
+  max-width: 400px; /* 원래 캔버스 크기 이상으로는 안 커지게 */
+}
+
+canvas {
+  display: block;
+  width: 100%; /* 부모 요소(canvas-area)에 맞춰 꽉 차게 줄어듦 */
+  height: auto; /* 비율 깨짐 방지 */
+  /* 캔버스 자체에서도 커서를 강제로 표시 */
+  cursor: inherit; 
+}
+.game-hint {
+  margin-top: 20px;
+  color: #4e5968;
+  font-weight: 500;
+}
+
+.game-over-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.4s ease-out;
+}
+
+.game-over-overlay h2 {
+  font-size: 1.8rem;
+  color: #191f28;
+  margin-bottom: 10px;
+}
+
+.final-time {
+  font-size: 1.2rem;
+  color: #3182f6;
+  font-weight: 700;
+  margin-bottom: 25px;
+}
+
+.retry-button {
+  padding: 15px 40px;
+  background: #3182f6;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

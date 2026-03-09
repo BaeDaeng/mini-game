@@ -4,6 +4,7 @@ import BrockBrick from './brock-brick/brock-brick';
 import CatchButton from './catch-the-button/catch-the-button';
 import SuikaGame from './suika-game/suika-game'; 
 import StackBlock from './stack-the-block/stack-the-block';
+import BalloonUp from './balloon-up/balloon-up';
 import './App.css';
 
 // 메인 로비 화면 컴포넌트
@@ -61,6 +62,17 @@ const MainLobby = () => {
           </div>
         </div>
 
+        {/* 5. 풍선띄우기 카드 */}
+        <div className="game-card" onClick={() => navigate('/balloon')}>
+          <div className="image-wrapper">
+            <img src="/images/balloon-up.png" alt="풍선띄우기 미리보기" />
+          </div>
+          <div className="card-info">
+            <h2>풍선띄우기</h2>
+            <button className="start-btn">시작하기</button>
+          </div>
+        </div>
+
       </main>
     </div>
   );
@@ -76,6 +88,7 @@ const App = () => {
         <Route path="/button" element={<CatchButton />} />
         <Route path="/suika" element={<SuikaGame />} />
         <Route path="/stackb" element={<StackBlock />} />
+        <Route path="/balloon" element={<BalloonUp />} />
       </Routes>
     </Router>
   );
