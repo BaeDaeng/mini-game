@@ -112,7 +112,7 @@ const SuikaGame = () => {
       // 물리 엔진의 반지름(fruit.radius)은 건드리지 않고 그대로 사용합니다.
       const body = Bodies.circle(x, y, fruit.radius, {
         label: `${level}`,
-        restitution: 0.3,     // 탄성 
+        restitution: 0.4,     // 탄성 
         friction: 0.01,        // 마찰력
         density: 0.002 * (level + 1),   // 무게
         isMerged: false, 
