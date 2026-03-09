@@ -15,6 +15,7 @@ const MainLobby = () => {
     <div className="lobby-container">
       <header className="header">
         <h1>mini-game</h1>
+        <h2>Swipe Up!!! 아래에도 있어요</h2>
       </header>
 
       <main className="game-grid">
