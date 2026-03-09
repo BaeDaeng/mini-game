@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import BrockBrick from './brock-brick/brock-brick';
 import CatchButton from './catch-the-button/catch-the-button';
 import SuikaGame from './suika-game/suika-game'; 
+import StackBlock from './stack-the-block/stack-the-block';
 import './App.css';
 
 // 메인 로비 화면 컴포넌트
@@ -48,6 +49,18 @@ const MainLobby = () => {
             <button className="start-btn">시작하기</button>
           </div>
         </div>
+
+        {/* 4. 무한쌓기 카드 */}
+        <div className="game-card" onClick={() => navigate('/stackb')}>
+          <div className="image-wrapper">
+            <img src="/images/stack-the-block.png" alt="무한쌓기 미리보기" />
+          </div>
+          <div className="card-info">
+            <h2>무한쌓기</h2>
+            <button className="start-btn">시작하기</button>
+          </div>
+        </div>
+
       </main>
     </div>
   );
@@ -62,6 +75,7 @@ const App = () => {
         <Route path="/brick" element={<BrockBrick />} />
         <Route path="/button" element={<CatchButton />} />
         <Route path="/suika" element={<SuikaGame />} />
+        <Route path="/stackb" element={<StackBlock />} />
       </Routes>
     </Router>
   );
