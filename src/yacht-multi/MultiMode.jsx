@@ -239,16 +239,30 @@ export default function MultiMode({ goBack }) {
           <div style={{ textAlign: 'center', fontWeight: 'bold', color: '#e74c3c', marginBottom: '10px' }}>
             총점: {getTotalScore(gameState.scores.p1)}점
           </div>
-          {CATEGORY_KEYS.map(cat => (
-            <button 
-              key={cat} 
-              onClick={() => recordScore(cat)} 
-              disabled={playerType !== 1 || gameState.turn !== 1 || gameState.scores.p1[cat] !== null || gameState.rollCount === 3}
-            >
-              <span style={{ fontSize: '0.85em' }}>{CATEGORY_LABELS[cat]}</span>
-              <span>{gameState.scores.p1[cat] !== null ? gameState.scores.p1[cat] : '-'}</span>
-            </button>
-          ))}
+          {CATEGORY_KEYS.map(cat => {
+            const isFilled = gameState.scores.p1[cat] !== null;
+            // 1P 턴이고, 1번 이상 주사위를 굴렸고, 빈칸일 때만 미리보기 표시
+            const showPreview = !isFilled && gameState.turn === 1 && gameState.rollCount < 3;
+            
+            return (
+              <button 
+                key={cat} 
+                onClick={() => recordScore(cat)} 
+                disabled={playerType !== 1 || gameState.turn !== 1 || isFilled || gameState.rollCount === 3}
+              >
+                <span style={{ fontSize: '0.85em' }}>{CATEGORY_LABELS[cat]}</span>
+                <span>
+                  {isFilled ? (
+                    gameState.scores.p1[cat]
+                  ) : showPreview ? (
+                    <span style={{ color: '#3498db', fontWeight: 'bold' }}>{calculateScore(gameState.dice, cat)}</span>
+                  ) : (
+                    '-'
+                  )}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         <div className={`score-col ${gameState.turn === 2 ? 'active-board' : 'inactive-board'}`}>
@@ -256,16 +270,30 @@ export default function MultiMode({ goBack }) {
           <div style={{ textAlign: 'center', fontWeight: 'bold', color: '#e74c3c', marginBottom: '10px' }}>
             총점: {getTotalScore(gameState.scores.p2)}점
           </div>
-          {CATEGORY_KEYS.map(cat => (
-            <button 
-              key={cat} 
-              onClick={() => recordScore(cat)} 
-              disabled={playerType !== 2 || gameState.turn !== 2 || gameState.scores.p2[cat] !== null || gameState.rollCount === 3}
-            >
-              <span style={{ fontSize: '0.85em' }}>{CATEGORY_LABELS[cat]}</span>
-              <span>{gameState.scores.p1[cat] !== null ? gameState.scores.p1[cat] : '-'}</span>
-            </button>
-          ))}
+          {CATEGORY_KEYS.map(cat => {
+            const isFilled = gameState.scores.p2[cat] !== null;
+            // 2P 턴이고, 1번 이상 주사위를 굴렸고, 빈칸일 때만 미리보기 표시
+            const showPreview = !isFilled && gameState.turn === 2 && gameState.rollCount < 3;
+
+            return (
+              <button 
+                key={cat} 
+                onClick={() => recordScore(cat)} 
+                disabled={playerType !== 2 || gameState.turn !== 2 || isFilled || gameState.rollCount === 3}
+              >
+                <span style={{ fontSize: '0.85em' }}>{CATEGORY_LABELS[cat]}</span>
+                <span>
+                  {isFilled ? (
+                    gameState.scores.p2[cat] // p1으로 되어있던 오류 완벽 수정!
+                  ) : showPreview ? (
+                    <span style={{ color: '#3498db', fontWeight: 'bold' }}>{calculateScore(gameState.dice, cat)}</span>
+                  ) : (
+                    '-'
+                  )}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
