@@ -20,8 +20,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100vh; /* 화면 꽉 채우기 */
-  padding: 10px;
+  height: 100vh;
+  /* 🔥 좌우 패딩을 0으로 없애서 화면 끝까지 붙게 만듭니다 */
+  padding: 10px 0; 
   box-sizing: border-box;
 }
 
@@ -30,7 +31,8 @@ body {
   text-align: center;
   margin-bottom: 10px;
   width: 100%;
-  max-width: 400px;
+  /* 🔥 헤더도 더 넓게 쓰도록 수정합니다 */
+  max-width: 500px; 
 }
 
 .suika-header h1 {
@@ -71,23 +73,24 @@ body {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  flex: 1; /* 남은 공간 차지 */
+  /* 🔥 컨테이너 최대 크기를 늘려 요즘 폰에서도 꽉 차게 합니다 */
+  max-width: 500px; 
+  flex: 1;
   overflow: hidden;
 }
 
-/* 🔥 [반응형 핵심]: 캔버스와 오버레이를 묶는 컨테이너. 2:3 비율 유지 */
+/* 캔버스와 오버레이를 묶는 컨테이너 */
 .game-canvas-wrapper {
   position: relative;
   width: 100%;
-  /* 400px이 게임의 내부 기본 너비이며, 화면이 크더라도 이 이상 커지지 않게 함 */
-  max-width: 400px;
+  /* 🔥 max-width: 400px; 삭제 (부모인 game-wrapper의 너비를 100% 따라갑니다) */
   
-  /* 반응형 비율 유지 공식: 세로(600) / 가로(400) * 100 = 150% */
-  /* 부모 너비에 맞춰 세로 크기가 자동으로 결정됨 */
-  aspect-ratio: 400 / 600; 
+  /* 2:3 비율은 그대로 유지하여 게임 플레이 감각은 보존합니다 */
+  aspect-ratio: 2 / 3; 
   
   background-color: #ffeaa7;
-  border-radius: 10px;
+  /* 🔥 화면 끝에 닿으므로 테두리 둥글기를 빼거나 줄이는 것이 자연스럽습니다 */
+  border-radius: 0; 
   box-shadow: 0 10px 20px rgba(0,0,0,0.2);
   overflow: hidden;
 }
