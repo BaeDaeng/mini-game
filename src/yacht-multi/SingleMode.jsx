@@ -65,6 +65,50 @@ export default function SingleMode({ goBack }) {
     }));
   };
 
+  // 💡 게임 다시 시작하기 로직
+  const restartGame = () => {
+    setGameState({
+      turn: 1,
+      dice: [1, 1, 1, 1, 1],
+      kept: [false, false, false, false, false],
+      rollCount: 3,
+      scores: { p1: getInitialScores(), p2: getInitialScores() }
+    });
+  };
+
+  // 💡 게임 종료 확인 로직
+  const isGameOver = 
+    Object.values(gameState.scores.p1).every(val => val !== null) && 
+    Object.values(gameState.scores.p2).every(val => val !== null);
+
+  const p1Total = getTotalScore(gameState.scores.p1);
+  const p2Total = getTotalScore(gameState.scores.p2);
+
+  // 💡 게임 종료 결과창 화면
+  if (isGameOver) {
+    let resultMessage = "";
+    if (p1Total > p2Total) resultMessage = "1P 승리! 🏆";
+    else if (p2Total > p1Total) resultMessage = "2P 승리! 🏆";
+    else resultMessage = "무승부! 🤝";
+
+    return (
+      <div className="menu-container">
+        <h1 style={{ fontSize: '3em', margin: '0' }}>게임 종료</h1>
+        <h2 className="highlight" style={{ fontSize: '2.5em', margin: '20px 0' }}>{resultMessage}</h2>
+        
+        <div className="box" style={{ flexDirection: 'column', alignItems: 'center', fontSize: '1.5em', background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '15px' }}>
+          <p style={{ margin: '10px 0' }}>1P 총점: <strong>{p1Total}</strong></p>
+          <p style={{ margin: '10px 0' }}>2P 총점: <strong>{p2Total}</strong></p>
+        </div>
+
+        <div className="box" style={{ flexDirection: 'column', marginTop: '30px' }}>
+          <button className="main-btn single" onClick={restartGame}>다시 하기 (새 게임)</button>
+          <button className="main-btn" onClick={goBack} style={{ background: '#95a5a6' }}>메인화면으로 돌아가기</button>
+        </div>
+      </div>
+    );
+  }
+
   const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
   return (
@@ -92,11 +136,10 @@ export default function SingleMode({ goBack }) {
       </div>
 
       <div className="score-area">
-        {/* 1P 점수판 */}
         <div className={`score-col ${gameState.turn === 1 ? 'active-board' : 'inactive-board'}`}>
           <h4>1P 점수판</h4>
           <div style={{ textAlign: 'center', fontWeight: 'bold', color: '#e74c3c', marginBottom: '10px' }}>
-            총점: {getTotalScore(gameState.scores.p1)}점
+            총점: {p1Total}점
           </div>
           {CATEGORY_KEYS.map(cat => {
             const isFilled = gameState.scores.p1[cat] !== null;
@@ -123,11 +166,10 @@ export default function SingleMode({ goBack }) {
           })}
         </div>
 
-        {/* 2P 점수판 */}
         <div className={`score-col ${gameState.turn === 2 ? 'active-board' : 'inactive-board'}`}>
           <h4>2P 점수판</h4>
           <div style={{ textAlign: 'center', fontWeight: 'bold', color: '#e74c3c', marginBottom: '10px' }}>
-            총점: {getTotalScore(gameState.scores.p2)}점
+            총점: {p2Total}점
           </div>
           {CATEGORY_KEYS.map(cat => {
             const isFilled = gameState.scores.p2[cat] !== null;
@@ -142,7 +184,7 @@ export default function SingleMode({ goBack }) {
                 <span style={{ fontSize: '0.85em' }}>{CATEGORY_LABELS[cat]}</span>
                 <span>
                   {isFilled ? (
-                    gameState.scores.p2[cat] // 여기도 p1 -> p2 오타 완벽 수정!
+                    gameState.scores.p2[cat] 
                   ) : showPreview ? (
                     <span style={{ color: '#3498db', fontWeight: 'bold' }}>{calculateScore(gameState.dice, cat)}</span>
                   ) : (

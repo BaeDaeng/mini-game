@@ -98,6 +98,27 @@ export default function MultiMode({ goBack }) {
     }
   };
 
+  // 💡 방 나가기 (데이터베이스에서 방 삭제)
+  const exitRoom = async () => {
+    if (roomCode) {
+      await deleteDoc(doc(db, "yacht_rooms", roomCode)).catch(() => {});
+    }
+    goBack(); // index.jsx 메인 화면으로 돌아가기
+  };
+
+  // 💡 게임 다시 시작하기 (같은 방에서 데이터만 초기화)
+  const restartGame = async () => {
+    if (gameState.turn !== playerType) return; // 중복 클릭 방지 (안전장치)
+    await updateDoc(doc(db, "yacht_rooms", roomCode), {
+      turn: 1,
+      dice: [1, 1, 1, 1, 1],
+      kept: [false, false, false, false, false],
+      rollCount: 3,
+      scores: { p1: getInitialScores(), p2: getInitialScores() },
+      lastActive: new Date().getTime()
+    });
+  };
+
   useEffect(() => {
     if (!roomCode) return;
     const roomRef = doc(db, "yacht_rooms", roomCode);
@@ -188,7 +209,7 @@ export default function MultiMode({ goBack }) {
           />
           <button className="main-btn multi" style={{padding: '10px'}} onClick={joinRoom}>입장</button>
         </div>
-        <button className="back-btn" onClick={goBack}>뒤로가기</button>
+        <button className="back-btn" onClick={goBack}>메인으로 돌아가기</button>
       </div>
     );
   }
@@ -198,11 +219,45 @@ export default function MultiMode({ goBack }) {
       <div className="menu-container">
         <h2>게임 코드: {roomCode}</h2>
         <p className="pulse-text">다른 플레이어를 기다리는 중...</p>
+        <button className="back-btn" onClick={exitRoom} style={{marginTop: '30px'}}>방 폭파하고 나가기</button>
       </div>
     );
   }
 
   if (!gameState) return <div>로딩 중...</div>;
+
+  // 💡 게임 종료 확인 로직
+  const isGameOver = 
+    Object.values(gameState.scores.p1).every(val => val !== null) && 
+    Object.values(gameState.scores.p2).every(val => val !== null);
+
+  const p1Total = getTotalScore(gameState.scores.p1);
+  const p2Total = getTotalScore(gameState.scores.p2);
+
+  // 💡 게임 종료 결과창 화면
+  if (isGameOver) {
+    let resultMessage = "";
+    if (p1Total > p2Total) resultMessage = "1P 승리! 🏆";
+    else if (p2Total > p1Total) resultMessage = "2P 승리! 🏆";
+    else resultMessage = "무승부! 🤝";
+
+    return (
+      <div className="menu-container">
+        <h1 style={{ fontSize: '3em', margin: '0' }}>게임 종료</h1>
+        <h2 className="highlight" style={{ fontSize: '2.5em', margin: '20px 0' }}>{resultMessage}</h2>
+        
+        <div className="box" style={{ flexDirection: 'column', alignItems: 'center', fontSize: '1.5em', background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '15px' }}>
+          <p style={{ margin: '10px 0' }}>1P 총점: <strong>{p1Total}</strong></p>
+          <p style={{ margin: '10px 0' }}>2P 총점: <strong>{p2Total}</strong></p>
+        </div>
+
+        <div className="box" style={{ flexDirection: 'column', marginTop: '30px' }}>
+          <button className="main-btn" onClick={restartGame}>다시 하기 (새 게임)</button>
+          <button className="main-btn multi" onClick={exitRoom}>메인화면으로 돌아가기</button>
+        </div>
+      </div>
+    );
+  }
 
   const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
   const isMyTurn = gameState.turn === playerType;
@@ -210,6 +265,7 @@ export default function MultiMode({ goBack }) {
   return (
     <div className="game-board">
       <div className="header">
+        <button className="back-btn" onClick={exitRoom} style={{position: 'absolute', top: '10px', left: '10px'}}>나가기</button>
         <h2>방: {roomCode} ({playerType}P)</h2>
         <h3 className={isMyTurn ? 'highlight' : ''}>
           {isMyTurn ? '내 턴입니다!' : '상대방 턴을 기다리는 중...'}
@@ -237,11 +293,10 @@ export default function MultiMode({ goBack }) {
         <div className={`score-col ${gameState.turn === 1 ? 'active-board' : 'inactive-board'}`}>
           <h4>1P 점수판 {playerType === 1 ? '(나)' : ''}</h4>
           <div style={{ textAlign: 'center', fontWeight: 'bold', color: '#e74c3c', marginBottom: '10px' }}>
-            총점: {getTotalScore(gameState.scores.p1)}점
+            총점: {p1Total}점
           </div>
           {CATEGORY_KEYS.map(cat => {
             const isFilled = gameState.scores.p1[cat] !== null;
-            // 1P 턴이고, 1번 이상 주사위를 굴렸고, 빈칸일 때만 미리보기 표시
             const showPreview = !isFilled && gameState.turn === 1 && gameState.rollCount < 3;
             
             return (
@@ -268,11 +323,10 @@ export default function MultiMode({ goBack }) {
         <div className={`score-col ${gameState.turn === 2 ? 'active-board' : 'inactive-board'}`}>
           <h4>2P 점수판 {playerType === 2 ? '(나)' : ''}</h4>
           <div style={{ textAlign: 'center', fontWeight: 'bold', color: '#e74c3c', marginBottom: '10px' }}>
-            총점: {getTotalScore(gameState.scores.p2)}점
+            총점: {p2Total}점
           </div>
           {CATEGORY_KEYS.map(cat => {
             const isFilled = gameState.scores.p2[cat] !== null;
-            // 2P 턴이고, 1번 이상 주사위를 굴렸고, 빈칸일 때만 미리보기 표시
             const showPreview = !isFilled && gameState.turn === 2 && gameState.rollCount < 3;
 
             return (
@@ -284,7 +338,7 @@ export default function MultiMode({ goBack }) {
                 <span style={{ fontSize: '0.85em' }}>{CATEGORY_LABELS[cat]}</span>
                 <span>
                   {isFilled ? (
-                    gameState.scores.p2[cat] // p1으로 되어있던 오류 완벽 수정!
+                    gameState.scores.p2[cat] 
                   ) : showPreview ? (
                     <span style={{ color: '#3498db', fontWeight: 'bold' }}>{calculateScore(gameState.dice, cat)}</span>
                   ) : (
