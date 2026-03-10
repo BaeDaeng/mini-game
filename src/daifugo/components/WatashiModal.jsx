@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { db } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useLanguage } from '../LanguageContext';
+import { getNextActiveTurn } from '../utils/gameLogic';
 
 const getSuitIcon = (suit) => ({ Spade: '♠️', Heart: '♥️', Diamond: '♦️', Club: '♣️', Joker: '🃏' }[suit] || '');
 const getCardColor = (suit) => ['Heart', 'Diamond'].includes(suit) ? '#e74c3c' : '#2c3e50';
@@ -17,10 +18,7 @@ export default function WatashiModal({ roomId, roomData, myId }) {
   if (!isMyTurn) {
     return (
       <div style={overlayStyle}>
-        <div style={modalStyle}>
-          <h2>{t('watashiWait')}</h2>
-          <p>{t('watashiWaitDesc')}</p>
-        </div>
+        <div style={modalStyle}><h2>{t('watashiWait')}</h2><p>{t('watashiWaitDesc')}</p></div>
       </div>
     );
   }
@@ -35,13 +33,14 @@ export default function WatashiModal({ roomId, roomData, myId }) {
 
   const submitWatashi = async () => {
     if (selectedCards.length !== cardsToPassCount) return;
-    const myNewHand = me.hand.filter(card => !selectedCards.find(sc => sc.id === card.id));
-    let nextTurn = (roomData.turn + roomData.direction) % 4;
-    if (nextTurn < 0) nextTurn += 4;
     const updatedPlayers = [...roomData.players];
-    updatedPlayers[roomData.turn].hand = myNewHand;
+    updatedPlayers[roomData.turn].hand = me.hand.filter(card => !selectedCards.find(sc => sc.id === card.id));
+    
+    // 💡 죽은 사람 건너뛰고 카드 넘겨주기
+    let nextTurn = getNextActiveTurn(roomData.turn, roomData.direction, 1, updatedPlayers);
     updatedPlayers[nextTurn].hand = [...updatedPlayers[nextTurn].hand, ...selectedCards];
     updatedPlayers[nextTurn].receivedMessage = { from: me.name, reason: t('reason7'), cards: selectedCards };
+
     await updateDoc(doc(db, 'rooms', roomId), { players: updatedPlayers, pendingAction: null, turn: nextTurn });
   };
 

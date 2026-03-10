@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { db } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useLanguage } from '../LanguageContext';
+import { getNextActiveTurn } from '../utils/gameLogic';
 
 const getSuitIcon = (suit) => ({ Spade: '♠️', Heart: '♥️', Diamond: '♦️', Club: '♣️', Joker: '🃏' }[suit] || '');
 const getCardColor = (suit) => ['Heart', 'Diamond'].includes(suit) ? '#e74c3c' : '#2c3e50';
@@ -17,10 +18,7 @@ export default function SuteModal({ roomId, roomData, myId }) {
   if (!isMyTurn) {
     return (
       <div style={overlayStyle}>
-        <div style={modalStyle}>
-          <h2>{t('suteWait')}</h2>
-          <p>{t('suteWaitDesc')}</p>
-        </div>
+        <div style={modalStyle}><h2>{t('suteWait')}</h2><p>{t('suteWaitDesc')}</p></div>
       </div>
     );
   }
@@ -35,21 +33,20 @@ export default function SuteModal({ roomId, roomData, myId }) {
 
   const submitSute = async () => {
     if (selectedCards.length !== discardCount) return;
-    const myNewHand = me.hand.filter(card => !selectedCards.find(sc => sc.id === card.id));
-    let nextTurn = (roomData.turn + roomData.direction) % 4;
-    if (nextTurn < 0) nextTurn += 4;
     const updatedPlayers = [...roomData.players];
-    updatedPlayers[roomData.turn].hand = myNewHand;
+    updatedPlayers[roomData.turn].hand = me.hand.filter(card => !selectedCards.find(sc => sc.id === card.id));
     
     let newStatus = roomData.status;
-    if (myNewHand.length === 0) {
+    if (updatedPlayers[roomData.turn].hand.length === 0) {
       const finishedCount = updatedPlayers.filter(p => p.rank).length;
       updatedPlayers[roomData.turn].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
       if (finishedCount + 1 === 3) {
-        updatedPlayers.find(p => p.hand.length > 0).rank = t('rankDaihinmin');
-        newStatus = 'game_over';
+        updatedPlayers.find(p => p.hand.length > 0).rank = t('rankDaihinmin'); newStatus = 'game_over';
       }
     }
+
+    // 💡 버리고 나서 죽은 사람 건너뛰기
+    let nextTurn = getNextActiveTurn(roomData.turn, roomData.direction, 1, updatedPlayers);
     await updateDoc(doc(db, 'rooms', roomId), { players: updatedPlayers, pendingAction: null, turn: nextTurn, status: newStatus });
   };
 
