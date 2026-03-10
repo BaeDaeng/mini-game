@@ -39,8 +39,8 @@ const SurvivalRaccoon = () => {
 
   const engine = useRef({
     isPlaying: false, 
-    triggerEasterEgg: false, // 🔥 숫자 7 이스터에그 감지용
-    joystick: { active: false, id: null, originX: 0, originY: 0, currentX: 0, currentY: 0, dx: 0, dy: 0 }, // 🔥 모바일 조이스틱 상태
+    triggerEasterEgg: false,
+    joystick: { active: false, id: null, originX: 0, originY: 0, currentX: 0, currentY: 0, dx: 0, dy: 0 },
     keys: { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false },
     lastTime: 0,
     elapsed: 0,
@@ -63,7 +63,6 @@ const SurvivalRaccoon = () => {
 
     const handleKeyDown = (e) => { 
       engine.current.keys[e.key] = true; 
-      // 🔥 이스터에그: 숫자 7을 누르면 즉시 게임 오버 (결과창 확인용)
       if (e.key === '7') engine.current.triggerEasterEgg = true;
     };
     const handleKeyUp = (e) => { engine.current.keys[e.key] = false; };
@@ -100,6 +99,20 @@ const SurvivalRaccoon = () => {
     requestRef.current = requestAnimationFrame(gameLoop);
   };
 
+  // ⏸ 일시정지 함수
+  const pauseGame = () => {
+    engine.current.isPlaying = false;
+    setGameState('PAUSED');
+  };
+
+  // ▶️ 계속하기 함수
+  const resumeGame = () => {
+    engine.current.isPlaying = true;
+    setGameState('PLAYING');
+    engine.current.lastTime = window.performance.now();
+    requestRef.current = requestAnimationFrame(gameLoop);
+  };
+
   const getRandomUpgrades = () => {
     const shuffled = [...UPGRADE_POOL].sort(() => 0.5 - window.Math.random());
     return shuffled.slice(0, 3);
@@ -121,13 +134,12 @@ const SurvivalRaccoon = () => {
     }
 
     engine.current.isPlaying = true; 
-    engine.current.joystick.active = false; // 업그레이드 후 조이스틱 초기화
+    engine.current.joystick.active = false;
     setGameState('PLAYING');
     engine.current.lastTime = window.performance.now(); 
     requestRef.current = requestAnimationFrame(gameLoop);
   };
 
-  // 🔥 모바일 터치 조이스틱 핸들러
   const handleTouchStart = (e) => {
     const touch = e.changedTouches[0];
     const eng = engine.current;
@@ -147,7 +159,6 @@ const SurvivalRaccoon = () => {
         eng.joystick.currentX = e.changedTouches[i].clientX;
         eng.joystick.currentY = e.changedTouches[i].clientY;
         
-        // 방향 벡터 계산 (최대 40px 반경 안에서 -1.0 ~ 1.0 비율로 산출)
         let dx = eng.joystick.currentX - eng.joystick.originX;
         let dy = eng.joystick.currentY - eng.joystick.originY;
         const dist = window.Math.hypot(dx, dy);
@@ -175,7 +186,6 @@ const SurvivalRaccoon = () => {
     const eng = engine.current;
     eng.spawnTimer += deltaTime;
     
-    // 🔥 난이도 조정 1: 스폰 주기가 300초가 아닌 250초 기준으로 더 빨리 짧아짐 (최대 속도 0.15초)
     const spawnRate = window.Math.max(0.15, 1.0 - (eng.elapsed / 250) * 0.85);
 
     if (eng.spawnTimer >= spawnRate) {
@@ -183,9 +193,7 @@ const SurvivalRaccoon = () => {
       const angle = window.Math.random() * window.Math.PI * 2;
       const dist = 500; 
       
-      // 🔥 난이도 조정 2: 체력이 45초마다 2배씩 오름 (기존 60초)
       const hpMultiplier = 1 + (eng.elapsed / 45); 
-      // 🔥 난이도 조정 3: 시간이 지날수록 적의 이동 속도가 최대 40%까지 빨라짐
       const speedMultiplier = 1 + (eng.elapsed / 300) * 0.4;
 
       const types = ['enemy1', 'enemy2', 'enemy3'];
@@ -250,11 +258,10 @@ const SurvivalRaccoon = () => {
     if (!engine.current.isPlaying) return;
     const eng = engine.current;
 
-    // 🔥 이스터에그 발동 체크
     if (eng.triggerEasterEgg) {
       eng.triggerEasterEgg = false;
       eng.isPlaying = false;
-      setGameState('GAME_OVER'); // 결과 화면 강제 출력
+      setGameState('GAME_OVER'); 
       updateUiState();
       return;
     }
@@ -272,7 +279,6 @@ const SurvivalRaccoon = () => {
 
     const p = eng.player;
 
-    // 🔥 조이스틱 & 키보드 하이브리드 이동 로직
     let dx = 0; let dy = 0;
     if (eng.joystick.active) {
       dx = eng.joystick.dx;
@@ -380,7 +386,6 @@ const SurvivalRaccoon = () => {
 
     ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-    // 카메라 시점 이동
     ctx.save();
     const camX = GAME_WIDTH / 2 - player.x;
     const camY = GAME_HEIGHT / 2 - player.y;
@@ -440,10 +445,8 @@ const SurvivalRaccoon = () => {
       ctx.fill();
     }
 
-    // 🔥 카메라 시점 원상 복구 (UI 오버레이를 위해)
     ctx.restore();
 
-    // 🔥 조이스틱 시각화 (터치 중일 때만 그리기)
     if (eng.joystick.active) {
       const rect = canvasRef.current.getBoundingClientRect();
       const scaleX = canvasRef.current.width / rect.width;
@@ -464,14 +467,12 @@ const SurvivalRaccoon = () => {
         dy = (dy / dist) * maxRadius;
       }
 
-      // 조이스틱 배경 (회색 원)
       ctx.globalAlpha = 0.4;
       ctx.beginPath();
       ctx.arc(jx, jy, maxRadius, 0, window.Math.PI * 2);
       ctx.fillStyle = '#ffffff';
       ctx.fill();
       
-      // 조이스틱 스틱 (파란 원)
       ctx.globalAlpha = 0.8;
       ctx.beginPath();
       ctx.arc(jx + dx, jy + dy, 20 * scaleX, 0, window.Math.PI * 2);
@@ -502,7 +503,11 @@ const SurvivalRaccoon = () => {
 
   return (
     <div className="raccoon-container">
-      {(gameState === 'PLAYING' || gameState === 'LEVEL_UP') && (
+      {gameState === 'PLAYING' && (
+        <button className="pause-btn" onClick={pauseGame}>⏸</button>
+      )}
+
+      {(gameState === 'PLAYING' || gameState === 'LEVEL_UP' || gameState === 'PAUSED') && (
         <div className="hud">
           <div className="timer">{formatTime(uiState.time)} / 05:00</div>
           
@@ -527,7 +532,7 @@ const SurvivalRaccoon = () => {
         width={GAME_WIDTH} 
         height={GAME_HEIGHT} 
         className="game-canvas"
-        style={{ touchAction: 'none' }} // 🔥 모바일 스크롤 방지
+        style={{ touchAction: 'none' }} 
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -554,6 +559,18 @@ const SurvivalRaccoon = () => {
                 <p>{u.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {gameState === 'PAUSED' && (
+        <div className="overlay pause-screen">
+          <h2>⏸ 일시정지</h2>
+          <p>잠시 휴식 중입니다...</p>
+          <div className="btn-group vertical">
+            <button className="action-btn" onClick={resumeGame}>계속하기</button>
+            <button className="action-btn" onClick={startGame}>다시하기</button>
+            <button className="action-btn secondary" onClick={() => navigate('/')}>돌아가기</button>
           </div>
         </div>
       )}
