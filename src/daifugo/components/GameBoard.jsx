@@ -245,7 +245,6 @@ export default function GameBoard({ roomId, myId }) {
 
   const canSubmit = isMyTurn && selectedCards.length > 0 && !roomData.pendingAction && !me.receivedMessage;
   const canPass = isMyTurn && !roomData.pendingAction && !me.receivedMessage;
-
   const ccwIndices = [1, 2, 0, 3]; 
 
   if (roomData.status === 'game_over') {
@@ -262,16 +261,6 @@ export default function GameBoard({ roomId, myId }) {
           ))}
         </div>
         {myId === 'p1' ? (<button className="main-btn single" style={{marginTop: '20px'}} onClick={startNextGame}>{t('nextGameBtn')}</button>) : (<p style={{ marginTop: '20px' }}>{t('waitingNext')}</p>)}
-      </div>
-    );
-  }
-
-  if (me.hand.length === 0 && roomData.status === 'playing') {
-    return (
-      <div className="menu-container">
-        <h2>{t('clearedTitle')}</h2>
-        <p>{t('clearedDesc')}</p>
-        <p style={{ marginTop: '20px', color: '#f1c40f' }}>{t('currentRank')}<strong>{me.rank}</strong></p>
       </div>
     );
   }
@@ -341,27 +330,36 @@ export default function GameBoard({ roomId, myId }) {
         )}
       </div>
 
-      <div className="score-area" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <h4 style={{ textAlign: 'center', margin: 0 }}>{t('myCard')}</h4>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px' }}>
-          {me?.hand?.map((card, idx) => (
-             <button key={idx} onClick={() => toggleCardSelection(card)} 
-                style={{ 
-                  padding: '10px', fontSize: '18px', fontWeight: 'bold', color: getCardColor(card.suit),
-                  border: selectedCards.find(c => c.id === card.id) ? '3px solid #3498db' : '1px solid #bdc3c7',
-                  transform: selectedCards.find(c => c.id === card.id) ? 'translateY(-10px)' : 'none', transition: '0.2s'
-                }}>
-               {card.suit === 'Joker' ? '🃏 Joker' : `${getSuitIcon(card.suit)} ${card.rank}`}
-             </button>
-          ))}
-          {(!me?.hand || me.hand.length === 0) && <p style={{ color: '#7f8c8d' }}>{t('noCard')}</p>}
+      {/* 💡 손패 유무에 따라 관전 모드 / 플레이 모드로 분기 */}
+      {me.hand.length === 0 ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'rgba(0,0,0,0.3)', borderRadius: '15px', padding: '20px', marginBottom: '20px' }}>
+          <h2 style={{ color: '#f1c40f', margin: '0 0 10px 0' }}>{t('clearedTitle')}</h2>
+          <p style={{ margin: 0 }}>{t('clearedDesc')}</p>
+          <p style={{ marginTop: '15px', fontSize: '1.2em' }}>{t('currentRank')} <strong style={{ color: '#e74c3c', marginLeft: '5px' }}>{me.rank}</strong></p>
         </div>
-      </div>
-
-      <div className="action-buttons">
-        <button className="main-btn single" disabled={!canSubmit} onClick={playCards}>{t('submitBtn')}</button>
-        <button className="main-btn" style={{ background: '#95a5a6' }} disabled={!canPass} onClick={passTurn}>{t('passBtn')}</button>
-      </div>
+      ) : (
+        <>
+          <div className="score-area" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <h4 style={{ textAlign: 'center', margin: 0 }}>{t('myCard')}</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px' }}>
+              {me?.hand?.map((card, idx) => (
+                 <button key={idx} onClick={() => toggleCardSelection(card)} 
+                    style={{ 
+                      padding: '10px', fontSize: '18px', fontWeight: 'bold', color: getCardColor(card.suit),
+                      border: selectedCards.find(c => c.id === card.id) ? '3px solid #3498db' : '1px solid #bdc3c7',
+                      transform: selectedCards.find(c => c.id === card.id) ? 'translateY(-10px)' : 'none', transition: '0.2s'
+                    }}>
+                   {card.suit === 'Joker' ? '🃏 Joker' : `${getSuitIcon(card.suit)} ${card.rank}`}
+                 </button>
+              ))}
+            </div>
+          </div>
+          <div className="action-buttons">
+            <button className="main-btn single" disabled={!canSubmit} onClick={playCards}>{t('submitBtn')}</button>
+            <button className="main-btn" style={{ background: '#95a5a6' }} disabled={!canPass} onClick={passTurn}>{t('passBtn')}</button>
+          </div>
+        </>
+      )}
 
       {roomData.pendingAction === 'watashi' && !me.receivedMessage && <WatashiModal roomId={roomId} roomData={roomData} myId={myId} />}
       {roomData.pendingAction === 'bomber' && !me.receivedMessage && <BomberModal roomId={roomId} roomData={roomData} myId={myId} />}
