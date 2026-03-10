@@ -13,16 +13,7 @@ export default function TaxExchange({ roomId, roomData, myId }) {
   const me = roomData.players.find(p => p.id === myId);
   const taxCount = me.rank === t('rankDaifugo') ? 2 : (me.rank === t('rankFugo') ? 1 : 0);
 
-  if (taxCount === 0 || me.taxPaid) {
-    return (
-      <div style={overlayStyle}>
-        <div style={modalStyle}>
-          <h2>{t('taxWait')}</h2>
-          <p>{t('taxWaitDesc')}</p>
-        </div>
-      </div>
-    );
-  }
+  if (taxCount === 0 || me.taxPaid) return <div style={overlayStyle}><div style={modalStyle}><h2>{t('taxWait')}</h2><p>{t('taxWaitDesc')}</p></div></div>;
 
   const toggleCardSelection = (card) => {
     setSelectedCards(prev => {
@@ -44,7 +35,7 @@ export default function TaxExchange({ roomId, roomData, myId }) {
 
     if (targetPlayerIdx !== -1) {
       updatedPlayers[targetPlayerIdx].hand.push(...selectedCards);
-      updatedPlayers[targetPlayerIdx].receivedMessage = { from: me.name, reason: t('reasonTax'), cards: selectedCards };
+      updatedPlayers[targetPlayerIdx].receivedMessage = { from: me.name, reason: 'tax', cards: selectedCards };
     }
     await updateDoc(doc(db, 'rooms', roomId), { players: updatedPlayers });
   };

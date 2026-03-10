@@ -19,17 +19,12 @@ export default function GameBoard({ roomId, myId }) {
   const [roomData, setRoomData] = useState(null);
   const [showRules, setShowRules] = useState(false);
   const [selectedCards, setSelectedCards] = useState([]);
-  // 💡 현재 설정된 언어(lang)를 가져옵니다.
   const { t, lang } = useLanguage();
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'rooms', roomId), (docSnap) => {
-      if (docSnap.exists()) {
-        setRoomData(docSnap.data());
-      } else {
-        alert('⏳ 방 폭파됨 (5분 무응답)');
-        window.location.reload();
-      }
+      if (docSnap.exists()) { setRoomData(docSnap.data()); } 
+      else { alert('⏳ 방 폭파됨 (5분 무응답)'); window.location.reload(); }
     });
     return () => unsubscribe();
   }, [roomId]);
@@ -37,7 +32,11 @@ export default function GameBoard({ roomId, myId }) {
   useEffect(() => {
     if (!roomData || myId !== 'p1') return;
     const explosionTimer = setTimeout(async () => {
-      try { await deleteDoc(doc(db, 'rooms', roomId)); } catch(error) { console.error("방 삭제 에러:", error); }
+      try { 
+        await deleteDoc(doc(db, 'rooms', roomId)); 
+      } catch(error) {
+        console.error("방 삭제 에러:", error); // 💡 에러를 콘솔에 출력하도록 수정
+      }
     }, 5 * 60 * 1000); 
     return () => clearTimeout(explosionTimer);
   }, [roomData, myId, roomId]);
@@ -55,14 +54,13 @@ export default function GameBoard({ roomId, myId }) {
              const count = p.rank === t('rankDaifugo') ? 2 : 1;
              const targetRank = p.rank === t('rankDaifugo') ? t('rankDaihinmin') : t('rankHinmin');
              const targetIdx = updatedPlayers.findIndex(op => op.rank === targetRank);
-
              const worstCards = getCpuWeakestCards(updatedPlayers[i].hand, count, false, false);
              updatedPlayers[i].hand = updatedPlayers[i].hand.filter(c => !worstCards.find(wc => wc.id === c.id));
              updatedPlayers[i].taxPaid = true;
-
              if (targetIdx !== -1) {
                  updatedPlayers[targetIdx].hand.push(...worstCards);
-                 updatedPlayers[targetIdx].receivedMessage = { from: p.name, reason: t('reasonTax'), cards: worstCards };
+                 // 💡 DB에는 안전한 상수(tax) 저장
+                 updatedPlayers[targetIdx].receivedMessage = { from: p.name, reason: 'tax', cards: worstCards };
              }
              changed = true;
          }
@@ -76,81 +74,82 @@ export default function GameBoard({ roomId, myId }) {
     if (!currentPlayer || !currentPlayer.isCpu) return;
 
     const cpuTimer = setTimeout(async () => {
-      let nextTurn = roomData.turn, newIsRevolution = roomData.isRevolution, newIs11Back = roomData.is11Back;
-      let newPendingAction = roomData.pendingAction, newTable = roomData.table, newPassCount = roomData.passCount, newStatus = roomData.status;
-      const updatedPlayers = [...roomData.players];
+      try { // 💡 에러 발생 시 방지
+        let nextTurn = roomData.turn, newIsRevolution = roomData.isRevolution, newIs11Back = roomData.is11Back;
+        let newPendingAction = roomData.pendingAction, newTable = roomData.table, newPassCount = roomData.passCount, newStatus = roomData.status;
+        const updatedPlayers = [...roomData.players];
 
-      if (newPendingAction === 'bomber') {
-        const targetRank = getCpuBomberTarget(currentPlayer.hand, newIsRevolution, newIs11Back);
-        const bombedPlayers = updatedPlayers.map(p => ({ 
-          ...p, hand: p.hand.filter(c => c.rank !== targetRank),
-          receivedMessage: { from: currentPlayer.name, reason: t('reason12'), rank: targetRank }
-        }));
-        
-        bombedPlayers.forEach((p, idx) => {
-          if (p.hand.length === 0 && !p.rank) {
-            const finishedCount = bombedPlayers.filter(bp => bp.rank).length;
-            bombedPlayers[idx].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
+        if (newPendingAction === 'bomber') {
+          const targetRank = getCpuBomberTarget(currentPlayer.hand, newIsRevolution, newIs11Back);
+          const bombedPlayers = updatedPlayers.map(p => ({ 
+            ...p, hand: p.hand.filter(c => c.rank !== targetRank),
+            receivedMessage: { from: currentPlayer.name, reason: 'bomber', rank: targetRank }
+          }));
+          
+          bombedPlayers.forEach((p, idx) => {
+            if (p.hand.length === 0 && !p.rank) {
+              const finishedCount = bombedPlayers.filter(bp => bp.rank).length;
+              bombedPlayers[idx].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
+            }
+          });
+          if (bombedPlayers.filter(p => p.rank).length >= 3) {
+            bombedPlayers.find(p => !p.rank).rank = t('rankDaihinmin'); newStatus = 'game_over';
           }
-        });
-        if (bombedPlayers.filter(p => p.rank).length >= 3) {
-          bombedPlayers.find(p => !p.rank).rank = t('rankDaihinmin'); newStatus = 'game_over';
-        }
-        await updateDoc(doc(db, 'rooms', roomId), { players: bombedPlayers, pendingAction: null, turn: getNextActiveTurn(roomData.turn, roomData.direction, 1, bombedPlayers), status: newStatus });
-        return;
-      }
-
-      if (newPendingAction === 'sute' || newPendingAction === 'watashi') {
-        const actionCards = getCpuWeakestCards(currentPlayer.hand, roomData.table.length, newIsRevolution, newIs11Back);
-        updatedPlayers[roomData.turn].hand = currentPlayer.hand.filter(c => !actionCards.find(ac => ac.id === c.id));
-        let targetTurn = getNextActiveTurn(roomData.turn, roomData.direction, 1, updatedPlayers);
-        
-        if (newPendingAction === 'watashi') {
-          updatedPlayers[targetTurn].hand = [...updatedPlayers[targetTurn].hand, ...actionCards];
-          updatedPlayers[targetTurn].receivedMessage = { from: currentPlayer.name, reason: t('reason7'), cards: actionCards };
-        }
-        if (updatedPlayers[roomData.turn].hand.length === 0) {
-          const finishedCount = updatedPlayers.filter(p => p.rank).length;
-          updatedPlayers[roomData.turn].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
-          if (finishedCount + 1 === 3) { updatedPlayers.find(p => p.hand.length > 0).rank = t('rankDaihinmin'); newStatus = 'game_over'; }
-        }
-        await updateDoc(doc(db, 'rooms', roomId), { players: updatedPlayers, pendingAction: null, turn: targetTurn, status: newStatus });
-        return;
-      }
-
-      const selectedCards = getCpuBestPlay(currentPlayer.hand, roomData.table, newIsRevolution, newIs11Back);
-      if (selectedCards.length > 0) {
-        updatedPlayers[roomData.turn].hand = currentPlayer.hand.filter(c => !selectedCards.find(sc => sc.id === c.id));
-        newTable = selectedCards; newPassCount = 0;
-        const playedRank = selectedCards.find(c => c.rank !== 'Joker')?.rank || 'Joker';
-        let skipCount = 1;
-
-        if (selectedCards.length >= 4) newIsRevolution = !newIsRevolution;
-        if (playedRank === 'J') newIs11Back = true;
-        if (playedRank === '5') skipCount += selectedCards.length;
-        
-        if (playedRank === '8') { newTable = []; newPassCount = 0; newIs11Back = false; skipCount = 0; } 
-        else if (playedRank === '10') { newPendingAction = 'sute'; skipCount = 0; } 
-        else if (playedRank === '7') { newPendingAction = 'watashi'; skipCount = 0; } 
-        else if (playedRank === 'Q') { newPendingAction = 'bomber'; skipCount = 0; }
-
-        const isHandEmpty = updatedPlayers[roomData.turn].hand.length === 0;
-
-        if (isHandEmpty) {
-          newPendingAction = null; 
-          skipCount = 1; 
-          const finishedCount = updatedPlayers.filter(p => p.rank).length;
-          updatedPlayers[roomData.turn].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
-          if (finishedCount + 1 === 3) { updatedPlayers.find(p => p.hand.length > 0).rank = t('rankDaihinmin'); newStatus = 'game_over'; }
+          await updateDoc(doc(db, 'rooms', roomId), { players: bombedPlayers, pendingAction: null, turn: getNextActiveTurn(roomData.turn, roomData.direction, 1, bombedPlayers), status: newStatus });
+          return;
         }
 
-        if (newStatus !== 'game_over' && skipCount > 0) nextTurn = getNextActiveTurn(roomData.turn, roomData.direction, skipCount, updatedPlayers);
-      } else {
-        newPassCount += 1;
-        nextTurn = getNextActiveTurn(roomData.turn, roomData.direction, 1, updatedPlayers);
-        if (newPassCount >= updatedPlayers.filter(p => p.hand.length > 0).length - 1) { newTable = []; newPassCount = 0; newIs11Back = false; }
-      }
-      await updateDoc(doc(db, 'rooms', roomId), { table: newTable, players: updatedPlayers, turn: nextTurn, passCount: newPassCount, isRevolution: newIsRevolution, is11Back: newIs11Back, pendingAction: newPendingAction, status: newStatus });
+        if (newPendingAction === 'sute' || newPendingAction === 'watashi') {
+          const actionCards = getCpuWeakestCards(currentPlayer.hand, roomData.table.length, newIsRevolution, newIs11Back);
+          updatedPlayers[roomData.turn].hand = currentPlayer.hand.filter(c => !actionCards.find(ac => ac.id === c.id));
+          let targetTurn = getNextActiveTurn(roomData.turn, roomData.direction, 1, updatedPlayers);
+          
+          if (newPendingAction === 'watashi') {
+            updatedPlayers[targetTurn].hand = [...updatedPlayers[targetTurn].hand, ...actionCards];
+            updatedPlayers[targetTurn].receivedMessage = { from: currentPlayer.name, reason: 'watashi', cards: actionCards };
+          }
+          if (updatedPlayers[roomData.turn].hand.length === 0) {
+            const finishedCount = updatedPlayers.filter(p => p.rank).length;
+            updatedPlayers[roomData.turn].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
+            if (finishedCount + 1 === 3) { updatedPlayers.find(p => p.hand.length > 0).rank = t('rankDaihinmin'); newStatus = 'game_over'; }
+          }
+          await updateDoc(doc(db, 'rooms', roomId), { players: updatedPlayers, pendingAction: null, turn: targetTurn, status: newStatus });
+          return;
+        }
+
+        const selectedCards = getCpuBestPlay(currentPlayer.hand, roomData.table, newIsRevolution, newIs11Back);
+        if (selectedCards.length > 0) {
+          updatedPlayers[roomData.turn].hand = currentPlayer.hand.filter(c => !selectedCards.find(sc => sc.id === c.id));
+          newTable = selectedCards; newPassCount = 0;
+          const playedRank = selectedCards.find(c => c.rank !== 'Joker')?.rank || 'Joker';
+          let skipCount = 1;
+
+          if (selectedCards.length >= 4) newIsRevolution = !newIsRevolution;
+          if (playedRank === 'J') newIs11Back = true;
+          if (playedRank === '5') skipCount += selectedCards.length;
+          
+          if (playedRank === '8') { newTable = []; newPassCount = 0; newIs11Back = false; skipCount = 0; } 
+          else if (playedRank === '10') { newPendingAction = 'sute'; skipCount = 0; } 
+          else if (playedRank === '7') { newPendingAction = 'watashi'; skipCount = 0; } 
+          else if (playedRank === 'Q') { newPendingAction = 'bomber'; skipCount = 0; }
+
+          const isHandEmpty = updatedPlayers[roomData.turn].hand.length === 0;
+
+          if (isHandEmpty) {
+            newPendingAction = null; 
+            skipCount = 1; 
+            const finishedCount = updatedPlayers.filter(p => p.rank).length;
+            updatedPlayers[roomData.turn].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
+            if (finishedCount + 1 === 3) { updatedPlayers.find(p => p.hand.length > 0).rank = t('rankDaihinmin'); newStatus = 'game_over'; }
+          }
+          if (newStatus !== 'game_over' && skipCount > 0) nextTurn = getNextActiveTurn(roomData.turn, roomData.direction, skipCount, updatedPlayers);
+        } else {
+          newPassCount += 1;
+          nextTurn = getNextActiveTurn(roomData.turn, roomData.direction, 1, updatedPlayers);
+          if (newPassCount >= updatedPlayers.filter(p => p.hand.length > 0).length - 1) { newTable = []; newPassCount = 0; newIs11Back = false; }
+        }
+        await updateDoc(doc(db, 'rooms', roomId), { table: newTable, players: updatedPlayers, turn: nextTurn, passCount: newPassCount, isRevolution: newIsRevolution, is11Back: newIs11Back, pendingAction: newPendingAction, status: newStatus });
+      } catch (err) { console.error("CPU Error:", err); }
     }, 1500);
     return () => clearTimeout(cpuTimer);
   }, [roomData, myId, roomId, t]);
@@ -187,7 +186,6 @@ export default function GameBoard({ roomId, myId }) {
     else if (playedRank === 'Q') { newPendingAction = 'bomber'; skipCount = 0; }
 
     const isHandEmpty = updatedPlayers[roomData.turn].hand.length === 0;
-
     if (isHandEmpty) {
       newPendingAction = null;
       skipCount = 1;
@@ -219,13 +217,13 @@ export default function GameBoard({ roomId, myId }) {
        const bestCards = sortHand(updatedPlayers[daihinminIdx].hand, false, false).slice(-2);
        updatedPlayers[daihinminIdx].hand = updatedPlayers[daihinminIdx].hand.filter(c => !bestCards.includes(c));
        updatedPlayers[daifugoIdx].hand.push(...bestCards);
-       updatedPlayers[daifugoIdx].receivedMessage = { from: updatedPlayers[daihinminIdx].name, reason: t('reasonTaxForce'), cards: bestCards };
+       updatedPlayers[daifugoIdx].receivedMessage = { from: updatedPlayers[daihinminIdx].name, reason: 'tax_force', cards: bestCards };
     }
     if (hinminIdx !== -1 && fugoIdx !== -1) {
        const bestCards = sortHand(updatedPlayers[hinminIdx].hand, false, false).slice(-1);
        updatedPlayers[hinminIdx].hand = updatedPlayers[hinminIdx].hand.filter(c => !bestCards.includes(c));
        updatedPlayers[fugoIdx].hand.push(...bestCards);
-       updatedPlayers[fugoIdx].receivedMessage = { from: updatedPlayers[hinminIdx].name, reason: t('reasonTaxForce'), cards: bestCards };
+       updatedPlayers[fugoIdx].receivedMessage = { from: updatedPlayers[hinminIdx].name, reason: 'tax_force', cards: bestCards };
     }
     await updateDoc(doc(db, 'rooms', roomId), { status: 'tax_exchange', players: updatedPlayers, turn: startingTurn, table: [], passCount: 0, isRevolution: false, is11Back: false, pendingAction: null });
   };
@@ -233,6 +231,11 @@ export default function GameBoard({ roomId, myId }) {
   const canSubmit = isMyTurn && selectedCards.length > 0 && !roomData.pendingAction && !me.receivedMessage;
   const canPass = isMyTurn && !roomData.pendingAction && !me.receivedMessage;
   const ccwIndices = [1, 2, 0, 3]; 
+
+  // 💡 번역 처리기
+  const reasonText = (reason) => {
+    return { 'bomber': t('reason12'), 'watashi': t('reason7'), 'tax': t('reasonTax'), 'tax_force': t('reasonTaxForce') }[reason] || reason;
+  };
 
   if (roomData.status === 'game_over') {
     const sortedPlayers = [...roomData.players].sort((a,b) => ({ [t('rankDaifugo')]:1, [t('rankFugo')]:2, [t('rankHinmin')]:3, [t('rankDaihinmin')]:4 }[a.rank] - { [t('rankDaifugo')]:1, [t('rankFugo')]:2, [t('rankHinmin')]:3, [t('rankDaihinmin')]:4 }[b.rank]));
@@ -272,10 +275,11 @@ export default function GameBoard({ roomId, myId }) {
       </div>
       {isMyTurn && <div className="my-turn-banner">{t('myTurnBanner')}</div>}
 
+      {/* 💡 에러 방지 처리된 통합 알림 모달 */}
       {me.receivedMessage && (
         <div className="received-overlay">
           <div className="received-modal">
-            {me.receivedMessage.reason === t('reason12') ? (
+            {me.receivedMessage.reason === 'bomber' ? (
               <>
                 <h3 style={{ color: '#e74c3c' }}>{t('bombAlertTitle')}</h3>
                 <p><strong>{me.receivedMessage.from}</strong>{t('bombAlertMsg1')} <strong>{me.receivedMessage.rank}</strong> {t('bombAlertMsg2')}</p>
@@ -283,9 +287,10 @@ export default function GameBoard({ roomId, myId }) {
             ) : (
               <>
                 <h3 style={{ color: '#2980b9' }}>{t('newCardTitle')}</h3>
-                <p><strong>{me.receivedMessage.from}</strong>{t('from')}{me.receivedMessage.reason}{t('receivedMsg')}</p>
+                <p><strong>{me.receivedMessage.from}</strong>{t('from')}{reasonText(me.receivedMessage.reason)}{t('receivedMsg')}</p>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', margin: '20px 0' }}>
-                  {me.receivedMessage.cards.map(c => (
+                  {/* ?.map을 사용하여 카드가 없어도 에러가 나지 않음 */}
+                  {me.receivedMessage.cards?.map(c => (
                     <div key={c.id} style={{ padding: '10px', fontSize: '20px', fontWeight: 'bold', background: '#ecf0f1', border: '2px solid #bdc3c7', borderRadius: '5px', color: getCardColor(c.suit) }}>
                       {c.suit === 'Joker' ? '🃏 Joker' : `${getSuitIcon(c.suit)} ${c.rank}`}
                     </div>
@@ -316,7 +321,6 @@ export default function GameBoard({ roomId, myId }) {
         )}
       </div>
 
-      {/* 💡 손패 유무에 따라 분기 */}
       {me.hand.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'rgba(0,0,0,0.3)', borderRadius: '15px', padding: '20px', marginBottom: '20px' }}>
           <h2 style={{ color: '#f1c40f', margin: '0 0 10px 0' }}>{t('clearedTitle')}</h2>
@@ -326,9 +330,8 @@ export default function GameBoard({ roomId, myId }) {
       ) : (
         <>
           <div className="score-area" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {/* 💡 "내 카드" 텍스트에 언어별로 유저 이름을 끼워넣는 부분 */}
             <h4 style={{ textAlign: 'center', margin: 0 }}>
-              {lang === 'ko' ? `내(${me?.name}) 카드` : `${me?.name}の手札`}
+              {lang === 'ko' ? `${me?.name}의 카드` : `${me?.name}の手札`}
             </h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px' }}>
               {me?.hand?.map((card, idx) => (

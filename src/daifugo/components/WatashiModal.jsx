@@ -15,13 +15,7 @@ export default function WatashiModal({ roomId, roomData, myId }) {
   const isMyTurn = roomData.players[roomData.turn].id === myId;
   const cardsToPassCount = roomData.table.length;
 
-  if (!isMyTurn) {
-    return (
-      <div style={overlayStyle}>
-        <div style={modalStyle}><h2>{t('watashiWait')}</h2><p>{t('watashiWaitDesc')}</p></div>
-      </div>
-    );
-  }
+  if (!isMyTurn) return <div style={overlayStyle}><div style={modalStyle}><h2>{t('watashiWait')}</h2><p>{t('watashiWaitDesc')}</p></div></div>;
 
   const toggleCardSelection = (card) => {
     setSelectedCards(prev => {
@@ -36,10 +30,9 @@ export default function WatashiModal({ roomId, roomData, myId }) {
     const updatedPlayers = [...roomData.players];
     updatedPlayers[roomData.turn].hand = me.hand.filter(card => !selectedCards.find(sc => sc.id === card.id));
     
-    // 💡 죽은 사람 건너뛰고 카드 넘겨주기
     let nextTurn = getNextActiveTurn(roomData.turn, roomData.direction, 1, updatedPlayers);
     updatedPlayers[nextTurn].hand = [...updatedPlayers[nextTurn].hand, ...selectedCards];
-    updatedPlayers[nextTurn].receivedMessage = { from: me.name, reason: t('reason7'), cards: selectedCards };
+    updatedPlayers[nextTurn].receivedMessage = { from: me.name, reason: 'watashi', cards: selectedCards };
 
     await updateDoc(doc(db, 'rooms', roomId), { players: updatedPlayers, pendingAction: null, turn: nextTurn });
   };

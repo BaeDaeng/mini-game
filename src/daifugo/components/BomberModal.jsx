@@ -14,19 +14,17 @@ export default function BomberModal({ roomId, roomData, myId }) {
   if (!isMyTurn) {
     return (
       <div style={overlayStyle}>
-        <div style={modalStyle}>
-          <h2>{t('bombWait')}</h2><p>{t('bombWaitDesc')}</p>
-        </div>
+        <div style={modalStyle}><h2>{t('bombWait')}</h2><p>{t('bombWaitDesc')}</p></div>
       </div>
     );
   }
 
   const submitBomber = async (targetRank) => {
     const updatedPlayers = roomData.players.map(player => ({
-      ...player, hand: player.hand.filter(card => card.rank !== targetRank), receivedMessage: { from: me.name, reason: t('reason12'), rank: targetRank }
+      ...player, hand: player.hand.filter(card => card.rank !== targetRank), 
+      receivedMessage: { from: me.name, reason: 'bomber', rank: targetRank }
     }));
     
-    // 💡 고스트 방지: 터진 카드가 마지막 카드였을 때 계급 부여
     let newStatus = roomData.status;
     updatedPlayers.forEach((p, idx) => {
       if (p.hand.length === 0 && !p.rank) {
