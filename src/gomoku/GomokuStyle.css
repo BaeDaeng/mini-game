@@ -1,0 +1,63 @@
+/* src/gomoku/GomokuStyle.css */
+.gomoku-container {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100dvh; background-color: #2c3e50; color: white; gap: 2vh; font-family: sans-serif;
+}
+
+.gomoku-board-wrapper {
+  background-color: #e6b981; /* 나무 질감 느낌의 배경색 */
+  padding: 10px; border-radius: 5px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.gomoku-board {
+  display: grid; grid-template-columns: repeat(15, 1fr);
+  width: 90vw; max-width: 500px; aspect-ratio: 1 / 1;
+  background-color: #dcb37b; border: 2px solid #5c3a21;
+}
+
+.board-cell {
+  position: relative; width: 100%; height: 100%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+
+/* 바둑판 교차 선 그리기 */
+.board-cell::before {
+  content: ''; position: absolute; top: 50%; left: 0; right: 0;
+  height: 1px; background-color: #5c3a21; transform: translateY(-50%); z-index: 1;
+}
+.board-cell::after {
+  content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
+  width: 1px; background-color: #5c3a21; transform: translateX(-50%); z-index: 1;
+}
+
+/* 테두리 셀의 선 끊김 방지 디테일 */
+.board-cell:nth-child(-n+15)::after { top: 50%; } /* 첫 줄 윗부분 자르기 */
+.board-cell:nth-last-child(-n+15)::after { bottom: 50%; } /* 마지막 줄 아랫부분 자르기 */
+.board-cell:nth-child(15n+1)::before { left: 50%; } /* 왼쪽 줄 왼쪽 자르기 */
+.board-cell:nth-child(15n)::before { right: 50%; } /* 오른쪽 줄 오른쪽 자르기 */
+
+/* 오목 돌 */
+.stone {
+  width: 80%; height: 80%; border-radius: 50%; z-index: 2;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+}
+.stone.black {
+  background: radial-gradient(circle at 30% 30%, #4a4a4a, #000);
+}
+.stone.white {
+  background: radial-gradient(circle at 30% 30%, #fff, #ccc);
+}
+
+/* 최근에 둔 돌 표시 (작은 점) */
+.stone.last-move::after {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  width: 20%; height: 20%; background-color: #e74c3c;
+  border-radius: 50%; transform: translate(-50%, -50%);
+}
+
+.info-panel {
+  text-align: center; font-size: 24px; font-weight: bold;
+}
+.turn-indicator {
+  display: inline-block; padding: 5px 15px; border-radius: 8px; margin-top: 10px;
+}

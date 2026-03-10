@@ -8,6 +8,7 @@ import BalloonUp from './balloon-up/balloon-up';
 import RaccoonSurvival from './raccoon-survival/raccoon-survival';
 import YachtMulti from './yacht-multi/index.jsx';
 import Daifugo from './daifugo/index.jsx';
+import Gomoku from './gomoku/index.jsx';
 import './App.css';
 
 // 메인 로비 화면 컴포넌트
@@ -110,6 +111,17 @@ const MainLobby = () => {
           </div>
         </div>
 
+        {/* 9. 오목 카드 */}
+        <div className="game-card" onClick={() => navigate('/gomoku')}>
+          <div className="image-wrapper">
+            <img src="/images/gomoku.png" alt="오목 미리보기" />
+          </div>
+          <div className="card-info">
+            <h2>오목</h2>
+            <button className="start-btn">시작하기</button>
+          </div>
+        </div>
+
       </main>
     </div>
   );
@@ -129,6 +141,7 @@ const App = () => {
         <Route path="/raccoon" element={<RaccoonSurvival />} />
         <Route path="/yacht" element={<YachtMulti />} />
         <Route path="/daifugo" element={<Daifugo />} />
+        <Route path="/gomoku" element={<Gomoku />} />
       </Routes>
     </Router>
   );
