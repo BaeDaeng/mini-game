@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { doc, setDoc, getDoc, updateDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
 import { distributeCards } from '../utils/deck';
-import { useLanguage } from '../LanguageContext'; // 💡 언어 훅 가져오기
+import { useLanguage } from '../LanguageContext';
+import FullRuleBook from './FullRuleBook'; // 💡 룰북 컴포넌트 임포트
 
 export default function Lobby({ onGameStart }) {
   const [step, setStep] = useState('menu');
@@ -12,8 +13,9 @@ export default function Lobby({ onGameStart }) {
   const [myId, setMyId] = useState('');
   const [players, setPlayers] = useState([]);
   const [isHost, setIsHost] = useState(false);
+  const [showFullRules, setShowFullRules] = useState(false); // 💡 모달 상태 관리
   
-  const { t } = useLanguage(); // 💡 번역 함수 사용
+  const { t } = useLanguage(); 
 
   const createRoom = async () => {
     const code = Math.random().toString(36).substring(2, 7).toUpperCase();
@@ -97,13 +99,25 @@ export default function Lobby({ onGameStart }) {
   }
 
   return (
-    <div className="menu-container">
+    <div className="menu-container" style={{ position: 'relative' }}>
+      {/* 💡 초심자 가이드 (룰북) 버튼 (좌측 상단 고정) */}
+      <button 
+        className="back-btn" 
+        onClick={() => setShowFullRules(true)} 
+        style={{ position: 'absolute', top: '15px', left: '15px', zIndex: 1000, background: '#e67e22' }}
+      >
+        {t('fullRuleBtn')}
+      </button>
+
       <h1>{t('title')}</h1>
       <button className="main-btn single" onClick={createRoom}>{t('createRoom')}</button>
       <div className="box" style={{ flexDirection: 'column', marginTop: '20px' }}>
         <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder={t('enterCode')} maxLength={5} />
         <button className="main-btn multi" onClick={joinRoom}>{t('joinRoom')}</button>
       </div>
+
+      {/* 💡 초심자 가이드 모달 */}
+      {showFullRules && <FullRuleBook onClose={() => setShowFullRules(false)} />}
     </div>
   );
 }
