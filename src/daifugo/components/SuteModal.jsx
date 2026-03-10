@@ -1,4 +1,4 @@
-// src/daifugo/components/WatashiModal.jsx
+// src/daifugo/components/SuteModal.jsx
 import React, { useState } from 'react';
 import { db } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -7,19 +7,19 @@ import { useLanguage } from '../LanguageContext';
 const getSuitIcon = (suit) => ({ Spade: '♠️', Heart: '♥️', Diamond: '♦️', Club: '♣️', Joker: '🃏' }[suit] || '');
 const getCardColor = (suit) => ['Heart', 'Diamond'].includes(suit) ? '#e74c3c' : '#2c3e50';
 
-export default function WatashiModal({ roomId, roomData, myId }) {
+export default function SuteModal({ roomId, roomData, myId }) {
   const [selectedCards, setSelectedCards] = useState([]);
   const { t } = useLanguage();
   const me = roomData.players.find(p => p.id === myId);
   const isMyTurn = roomData.players[roomData.turn].id === myId;
-  const cardsToPassCount = roomData.table.length;
+  const discardCount = roomData.table.length;
 
   if (!isMyTurn) {
     return (
       <div style={overlayStyle}>
         <div style={modalStyle}>
-          <h2>{t('watashiWait')}</h2>
-          <p>{t('watashiWaitDesc')}</p>
+          <h2>{t('suteWait')}</h2>
+          <p>{t('suteWaitDesc')}</p>
         </div>
       </div>
     );
@@ -28,28 +28,36 @@ export default function WatashiModal({ roomId, roomData, myId }) {
   const toggleCardSelection = (card) => {
     setSelectedCards(prev => {
       if (prev.find(c => c.id === card.id)) return prev.filter(c => c.id !== card.id);
-      if (prev.length >= cardsToPassCount) return prev;
+      if (prev.length >= discardCount) return prev;
       return [...prev, card];
     });
   };
 
-  const submitWatashi = async () => {
-    if (selectedCards.length !== cardsToPassCount) return;
+  const submitSute = async () => {
+    if (selectedCards.length !== discardCount) return;
     const myNewHand = me.hand.filter(card => !selectedCards.find(sc => sc.id === card.id));
     let nextTurn = (roomData.turn + roomData.direction) % 4;
     if (nextTurn < 0) nextTurn += 4;
     const updatedPlayers = [...roomData.players];
     updatedPlayers[roomData.turn].hand = myNewHand;
-    updatedPlayers[nextTurn].hand = [...updatedPlayers[nextTurn].hand, ...selectedCards];
-    updatedPlayers[nextTurn].receivedMessage = { from: me.name, reason: t('reason7'), cards: selectedCards };
-    await updateDoc(doc(db, 'rooms', roomId), { players: updatedPlayers, pendingAction: null, turn: nextTurn });
+    
+    let newStatus = roomData.status;
+    if (myNewHand.length === 0) {
+      const finishedCount = updatedPlayers.filter(p => p.rank).length;
+      updatedPlayers[roomData.turn].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
+      if (finishedCount + 1 === 3) {
+        updatedPlayers.find(p => p.hand.length > 0).rank = t('rankDaihinmin');
+        newStatus = 'game_over';
+      }
+    }
+    await updateDoc(doc(db, 'rooms', roomId), { players: updatedPlayers, pendingAction: null, turn: nextTurn, status: newStatus });
   };
 
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
-        <h2 style={{ color: '#e74c3c' }}>{t('watashiTitle')}</h2>
-        <p>{t('watashiDesc1')} <strong>{cardsToPassCount}</strong>{t('watashiDesc2')}</p>
+        <h2 style={{ color: '#8e44ad' }}>{t('suteTitle')}</h2>
+        <p>{t('suteDesc')} <strong>{discardCount}</strong>{t('watashiDesc2')}</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px', margin: '20px 0' }}>
           {me.hand.map(card => (
             <button key={card.id} onClick={() => toggleCardSelection(card)}
@@ -62,8 +70,8 @@ export default function WatashiModal({ roomId, roomData, myId }) {
             </button>
           ))}
         </div>
-        <button className="main-btn single" disabled={selectedCards.length !== cardsToPassCount} onClick={submitWatashi}>
-          {cardsToPassCount}{t('watashiBtn')}
+        <button className="main-btn single" disabled={selectedCards.length !== discardCount} onClick={submitSute}>
+          {discardCount}{t('suteBtn')}
         </button>
       </div>
     </div>

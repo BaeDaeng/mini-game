@@ -2,24 +2,46 @@
 import React, { useState } from 'react';
 import Lobby from './components/Lobby';
 import GameBoard from './components/GameBoard';
+import { LanguageProvider, useLanguage } from './LanguageContext'; // 💡 언어 컨텍스트 추가
 import './DaifugoStyle.css';
 
-export default function DaifugoEntry() {
+// 💡 실제 게임 화면 컴포넌트 (언어 변경 버튼 포함)
+function DaifugoAppContent() {
   const [gameState, setGameState] = useState({ roomId: null, myId: null });
+  const { toggleLanguage, t } = useLanguage();
 
-  // 로비에서 게임 시작 시 호출되는 함수
   const handleGameStart = (roomId, myId) => {
     setGameState({ roomId, myId });
   };
 
   return (
-    <div className="daifugo-app">
-      {/* roomId와 myId가 세팅되었다면 게임 화면으로, 아니면 로비 화면을 렌더링 */}
+    <div className="daifugo-app" style={{ position: 'relative' }}>
+      {/* 💡 우측 상단 언어 변경 버튼 */}
+      <button 
+        onClick={toggleLanguage}
+        style={{
+          position: 'absolute', top: '15px', right: '15px', zIndex: 1000,
+          padding: '8px 12px', background: '#34495e', color: 'white',
+          border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold'
+        }}
+      >
+        {t('langBtn')}
+      </button>
+
       {gameState.roomId && gameState.myId ? (
         <GameBoard roomId={gameState.roomId} myId={gameState.myId} />
       ) : (
         <Lobby onGameStart={handleGameStart} />
       )}
     </div>
+  );
+}
+
+// 최상단은 Provider로 감싸기
+export default function DaifugoEntry() {
+  return (
+    <LanguageProvider>
+      <DaifugoAppContent />
+    </LanguageProvider>
   );
 }
