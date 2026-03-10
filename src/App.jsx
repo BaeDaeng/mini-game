@@ -7,6 +7,7 @@ import StackBlock from './stack-the-block/stack-the-block';
 import BalloonUp from './balloon-up/balloon-up';
 import RaccoonSurvival from './raccoon-survival/raccoon-survival';
 import YachtMulti from './yacht-multi/index.jsx';
+import Daifugo from './daifugo/index.jsx';
 import './App.css';
 
 // 메인 로비 화면 컴포넌트
@@ -87,13 +88,24 @@ const MainLobby = () => {
           </div>
         </div>
 
-        {/* 6. 야추! 카드 */}
+        {/* 7. 야추! 카드 */}
         <div className="game-card" onClick={() => navigate('/yacht')}>
           <div className="image-wrapper">
             <img src="/images/yacht-multi.png" alt="야추! 멀티! 미리보기" />
           </div>
           <div className="card-info">
             <h2>야추! 멀티!</h2>
+            <button className="start-btn">시작하기</button>
+          </div>
+        </div>
+
+        {/* 8. 다이후고 카드 */}
+        <div className="game-card" onClick={() => navigate('/daifugo')}>
+          <div className="image-wrapper">
+            <img src="/images/daifugo.png" alt="대부호 카드게임 미리보기" />
+          </div>
+          <div className="card-info">
+            <h2>대부호 카드게임</h2>
             <button className="start-btn">시작하기</button>
           </div>
         </div>
@@ -116,6 +128,7 @@ const App = () => {
         <Route path="/balloon" element={<BalloonUp />} />
         <Route path="/raccoon" element={<RaccoonSurvival />} />
         <Route path="/yacht" element={<YachtMulti />} />
+        <Route path="/daifugo" element={<Daifugo />} />
       </Routes>
     </Router>
   );
