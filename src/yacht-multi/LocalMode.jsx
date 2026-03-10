@@ -1,4 +1,4 @@
-// src/yacht-multi/SingleMode.jsx
+// src/yacht-multi/LocalMode.jsx
 import React, { useState } from 'react';
 import { calculateScore, getInitialScores } from './yachtRules';
 

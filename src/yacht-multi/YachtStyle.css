@@ -21,6 +21,7 @@ html, body {
   justify-content: center; 
   align-items: stretch;
 }
+
 .main-btn { 
   padding: 15px 30px; 
   font-size: min(5vw, 20px); 
@@ -34,21 +35,26 @@ html, body {
   transition: transform 0.2s ease, filter 0.2s ease; /* 마우스 올렸을 때 부드러운 효과 */
   box-shadow: 0 4px 6px rgba(0,0,0,0.3); /* 살짝 그림자 추가 */
 }
+
 .main-btn:hover {
   transform: scale(1.05);
   filter: brightness(1.1);
 }
+
 .main-btn.single { 
   background-color: #2ecc71; 
 }
+
 .main-btn.multi { 
   background-color: #e74c3c; 
 }
+
 .main-btn.multi {
   padding: 15px 30px;
   font-size: 18px;
   white-space: nowrap; /* 글씨가 줄바꿈되지 않게 */
 }
+
 input { 
   padding: 15px 20px; 
   font-size: 24px; /* 글자 크기 대폭 확대 */
@@ -60,6 +66,7 @@ input {
   letter-spacing: 5px; /* 코드 입력 시 글자 간격을 넓혀서 보기 편하게 */
   border: 2px solid #bdc3c7;
 }
+
 input:focus {
   outline: none;
   border-color: #3498db;
