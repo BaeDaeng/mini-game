@@ -1,0 +1,146 @@
+/* 브라우저 기본 여백 제거 */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* 스크롤바 방지 */
+  background-color: #ffffff;
+}
+
+/* 게임 컨테이너를 화면에 꽉 채움 */
+.game-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background-color: #ffffff;
+}
+
+/* 십자선 UI */
+.crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  z-index: 100;
+  background-color: transparent;
+  border-radius: 50%;
+  border: 2px solid #000000;
+  pointer-events: none;
+}
+
+/* 공통 UI 오버레이 설정 */
+.ui-overlay {
+  position: absolute;
+  top: 30px;
+  z-index: 10;
+  pointer-events: none;
+  font-family: 'Arial Black', sans-serif;
+  letter-spacing: 2px;
+}
+
+.ui-overlay h2 {
+  margin: 0;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+}
+
+/* 좌측 상단 점수 UI */
+.score-ui {
+  left: 40px;
+  color: #ff0000;
+}
+
+/* 우측 상단 타이머 UI */
+.timer-ui {
+  right: 40px;
+  color: #000000;
+}
+
+/* 시작 및 게임 오버 공통 화면 */
+.start-screen,
+.game-over-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* 🔥 타이틀-설명-버튼 블록을 세로 중앙에 배치 */
+  align-items: center;
+  z-index: 200;
+  font-family: 'Arial Black', sans-serif;
+}
+
+/* SUPERHOT 타이틀 텍스트 */
+.super-hot-text {
+  color: #ff0000;
+  font-size: 8rem;
+  line-height: 0.9;
+  text-align: center;
+  margin: 0 0 20px 0;
+  animation: pulse 1s infinite alternate;
+  text-shadow: 4px 4px 0px rgba(0,0,0,0.05);
+}
+
+/* 설명 텍스트 (수정) */
+.start-screen p,
+.game-over-screen p {
+  color: #333333;
+  font-size: 1.5rem;
+  margin-bottom: 20px; /* 🔥 버튼과의 간격을 줄여 버튼이 더 위(중앙)에 오도록 */
+  font-weight: bold;
+  letter-spacing: -0.5px;
+}
+
+/* 공통 액션 버튼 (START, 다시 하기) */
+.action-btn {
+  padding: 15px 50px;
+  font-size: 1.8rem;
+  font-family: 'Arial Black', sans-serif;
+  color: white;
+  background-color: #000000;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s, background-color 0.2s;
+  box-shadow: 0 6px 0 #333333;
+  letter-spacing: 1px;
+}
+
+.action-btn:active {
+  transform: translateY(6px);
+  box-shadow: none;
+}
+
+.action-btn:hover {
+  background-color: #ff0000;
+  box-shadow: 0 6px 0 #cc0000;
+}
+
+/* 🔥 시작 화면 새로운 하단 경고 문구 스타일 */
+.start-screen .warning-text {
+  position: absolute; /* 🔥 부모(start-screen)를 기준으로 절대 배치 */
+  bottom: 40px;      /* 🔥 하단에서 40px 위에 배치 */
+  left: 0;
+  width: 100%;       /* 🔥 가로 전체 너비 사용 */
+  text-align: center; /* 🔥 텍스트 중앙 정렬 */
+  color: #ff0000;    /* 🔥 빨간색 (위험 경고) */
+  font-size: 1.2rem;
+  margin: 0;         /* 🔥 기본 p 태그 마진 제거 */
+  text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+}
+
+/* 게임 오버 화면 전용 (원래 스타일 유지) */
+.game-over-screen p {
+  margin-bottom: 40px; /* 🔥 게임 오버 화면은 원래대로 */
+}
+
+/* 텍스트 펄스 애니메이션 */
+@keyframes pulse {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(1.03); opacity: 0.85; }
+}
