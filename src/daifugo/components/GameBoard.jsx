@@ -19,7 +19,10 @@ export default function GameBoard({ roomId, myId }) {
   const [roomData, setRoomData] = useState(null);
   const [showRules, setShowRules] = useState(false);
   const [selectedCards, setSelectedCards] = useState([]);
-  const [revAlert, setRevAlert] = useState(null); // 💡 혁명 알림창을 화면에 띄울지 결정하는 로컬 상태
+  
+  // 💡 혁명 알림 모달 상태
+  const [revAlert, setRevAlert] = useState(null);
+  
   const { t, lang } = useLanguage();
 
   useEffect(() => {
@@ -38,16 +41,14 @@ export default function GameBoard({ roomId, myId }) {
     return () => clearTimeout(explosionTimer);
   }, [roomData, myId, roomId]);
 
-  // 💡 DB에서 새로운 혁명 신호(id)가 감지되면 알림창을 띄우고 3.5초 뒤에 스스로 지웁니다.
+  // 💡 혁명 알림창 관리 (에러/경고 없는 깔끔한 비동기 로직)
   useEffect(() => {
     const currentLog = roomData?.revolutionLog;
-    if (currentLog?.id) {
-      // 💡 1. "동기적 연쇄 렌더링" 에러를 피하기 위해 0초 타이머로 감싸서 비동기 처리!
+    if (currentLog && currentLog.id) {
       const showTimer = setTimeout(() => {
         setRevAlert(currentLog);
-      }, 0);
+      }, 10); // UI 렌더링 꼬임 방지
 
-      // 💡 2. 3.5초 뒤 알림창 스르륵 닫기
       const autoCloseTimer = setTimeout(() => {
         setRevAlert(null);
       }, 3500);
@@ -58,7 +59,7 @@ export default function GameBoard({ roomId, myId }) {
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomData?.revolutionLog?.id]); // 💡 3. 노란줄 방지를 위해 객체 대신 고유 ID(숫자)만 감시
+  }, [roomData?.revolutionLog?.id]); 
 
   useEffect(() => {
     if (!roomData || myId !== 'p1') return;
@@ -93,9 +94,9 @@ export default function GameBoard({ roomId, myId }) {
 
     const cpuTimer = setTimeout(async () => {
       try {
-        let nextTurn = roomData.turn, newIsRevolution = roomData.isRevolution, newIs11Back = roomData.is11Back;
+        let nextTurn = roomData.turn, newIsRevolution = roomData.isRevolution === true, newIs11Back = roomData.is11Back;
         let newPendingAction = roomData.pendingAction, newTable = roomData.table, newPassCount = roomData.passCount, newStatus = roomData.status;
-        let newRevolutionLog = roomData.revolutionLog || null; // 💡 기존 로그 유지
+        let newRevolutionLog = roomData.revolutionLog || null; 
         
         const updatedPlayers = [...roomData.players];
 
@@ -156,10 +157,10 @@ export default function GameBoard({ roomId, myId }) {
           const playedRank = selectedCards.find(c => c.rank !== 'Joker')?.rank || 'Joker';
           let skipCount = 1;
 
-          // 💡 CPU 혁명 발생 시 DB에 로그 기록!
+          // 💡 CPU 혁명 처리
           if (selectedCards.length >= 4) {
-            newIsRevolution = !newIsRevolution;
-            newRevolutionLog = { id: Date.now(), playerName: currentPlayer.name, isRevolution: newIsRevolution };
+            newIsRevolution = !newIsRevolution; // 혁명 상태 뒤집기!
+            newRevolutionLog = { id: new Date().getTime(), playerName: currentPlayer.name, isRevolution: newIsRevolution };
           }
 
           if (playedRank === 'J') newIs11Back = true;
@@ -192,7 +193,7 @@ export default function GameBoard({ roomId, myId }) {
         await updateDoc(doc(db, 'rooms', roomId), { 
           table: newTable, players: updatedPlayers, turn: nextTurn, passCount: newPassCount, 
           isRevolution: newIsRevolution, is11Back: newIs11Back, pendingAction: newPendingAction, 
-          status: newStatus, revolutionLog: newRevolutionLog // 💡 혁명 로그 저장
+          status: newStatus, revolutionLog: newRevolutionLog
         });
       } catch (err) { console.error("CPU Error:", err); }
     }, 1500);
@@ -217,16 +218,16 @@ export default function GameBoard({ roomId, myId }) {
     const updatedPlayers = [...roomData.players];
     updatedPlayers[roomData.turn].hand = me.hand.filter(card => !selectedCards.find(sc => sc.id === card.id));
 
-    let nextTurn = roomData.turn, newIsRevolution = roomData.isRevolution, newIs11Back = roomData.is11Back, newPendingAction = roomData.pendingAction;
+    let nextTurn = roomData.turn, newIsRevolution = roomData.isRevolution === true, newIs11Back = roomData.is11Back, newPendingAction = roomData.pendingAction;
     let skipCount = 1, newStatus = roomData.status, newTable = selectedCards, newPassCount = 0;
     let newRevolutionLog = roomData.revolutionLog || null;
 
     const playedRank = selectedCards.find(c => c.rank !== 'Joker')?.rank || 'Joker';
 
-    // 💡 유저가 혁명 발생 시 DB에 로그 기록!
+    // 💡 유저 혁명 처리 로직 확립
     if (selectedCards.length >= 4) {
-      newIsRevolution = !newIsRevolution;
-      newRevolutionLog = { id: new Date.getTime(), playerName: me.name, isRevolution: newIsRevolution };
+      newIsRevolution = !newIsRevolution; // 혁명 상태 뒤집기!
+      newRevolutionLog = { id: new Date().getTime(), playerName: me.name, isRevolution: newIsRevolution };
     }
 
     if (playedRank === 'J') newIs11Back = true;
@@ -254,7 +255,7 @@ export default function GameBoard({ roomId, myId }) {
     await updateDoc(doc(db, 'rooms', roomId), { 
       table: newTable, players: updatedPlayers, turn: nextTurn, passCount: newPassCount, 
       isRevolution: newIsRevolution, is11Back: newIs11Back, pendingAction: newPendingAction, 
-      status: newStatus, revolutionLog: newRevolutionLog // 💡 혁명 로그 저장
+      status: newStatus, revolutionLog: newRevolutionLog
     });
     setSelectedCards([]);
   };
@@ -290,7 +291,7 @@ export default function GameBoard({ roomId, myId }) {
     await updateDoc(doc(db, 'rooms', roomId), { 
       status: 'tax_exchange', players: updatedPlayers, turn: startingTurn, 
       table: [], passCount: 0, isRevolution: false, is11Back: false, 
-      pendingAction: null, revolutionLog: null // 새 게임 시작 시 알림 리셋
+      pendingAction: null, revolutionLog: null
     });
   };
 
@@ -342,14 +343,14 @@ export default function GameBoard({ roomId, myId }) {
       </div>
       {isMyTurn && <div className="my-turn-banner">{t('myTurnBanner')}</div>}
 
-      {/* 💡 혁명 발동 화려한 알림 모달 (3.5초 뒤 자동 닫힘) */}
+      {/* 💡 화면을 꽉 채우는 압도적 혁명 알림창! */}
       {revAlert && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 10005, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <div style={{ background: revAlert.isRevolution ? '#c0392b' : '#2980b9', color: 'white', padding: '40px 60px', borderRadius: '20px', textAlign: 'center', boxShadow: '0 0 50px rgba(0,0,0,1)', animation: 'pulseBanner 0.5s infinite alternate', border: '5px solid #f1c40f' }}>
-            <h1 style={{ fontSize: 'min(10vw, 4em)', margin: '0 0 20px 0' }}>
+          <div style={{ background: revAlert.isRevolution ? '#c0392b' : '#2980b9', color: 'white', padding: '40px 60px', borderRadius: '20px', textAlign: 'center', boxShadow: '0 0 50px rgba(0,0,0,1)', border: '5px solid #f1c40f', transform: 'scale(1.1)', transition: 'transform 0.3s' }}>
+            <h1 style={{ fontSize: 'min(10vw, 3em)', margin: '0 0 20px 0' }}>
               {revAlert.isRevolution ? t('revAlertTitleOn') : t('revAlertTitleOff')}
             </h1>
-            <h2 style={{ fontSize: 'min(6vw, 2.5em)', margin: 0 }}>
+            <h2 style={{ fontSize: 'min(6vw, 2em)', margin: 0 }}>
               {revAlert.playerName}{revAlert.isRevolution ? t('revAlertOn') : t('revAlertOff')}
             </h2>
           </div>
