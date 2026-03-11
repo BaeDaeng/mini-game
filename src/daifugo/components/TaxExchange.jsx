@@ -11,7 +11,9 @@ export default function TaxExchange({ roomId, roomData, myId }) {
   const [selectedCards, setSelectedCards] = useState([]);
   const { t } = useLanguage();
   const me = roomData.players.find(p => p.id === myId);
-  const taxCount = me.rank === t('rankDaifugo') ? 2 : (me.rank === t('rankFugo') ? 1 : 0);
+  
+  // 💡 DB에 저장된 영문 키를 기준으로 확인
+  const taxCount = me.rank === 'Daifugo' ? 2 : (me.rank === 'Fugo' ? 1 : 0);
 
   if (taxCount === 0 || me.taxPaid) return <div style={overlayStyle}><div style={modalStyle}><h2>{t('taxWait')}</h2><p>{t('taxWaitDesc')}</p></div></div>;
 
@@ -25,7 +27,7 @@ export default function TaxExchange({ roomId, roomData, myId }) {
 
   const submitTax = async () => {
     if (selectedCards.length !== taxCount) return;
-    const targetRank = me.rank === t('rankDaifugo') ? t('rankDaihinmin') : t('rankHinmin');
+    const targetRank = me.rank === 'Daifugo' ? 'Daihinmin' : 'Hinmin';
     const targetPlayerIdx = roomData.players.findIndex(p => p.rank === targetRank);
     const myIdx = roomData.players.findIndex(p => p.id === myId);
 
@@ -43,7 +45,8 @@ export default function TaxExchange({ roomId, roomData, myId }) {
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
-        <h2 style={{ color: '#f39c12' }}>{t('taxTitle')} ({me.rank})</h2>
+        {/* 💡 화면에 보여질 때만 t() 함수로 번역 */}
+        <h2 style={{ color: '#f39c12' }}>{t('taxTitle')} ({t('rank' + me.rank)})</h2>
         <p>{t('taxDesc')} <strong>{taxCount}</strong>{t('watashiDesc2')}</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px', margin: '20px 0' }}>
           {me.hand.map(card => (

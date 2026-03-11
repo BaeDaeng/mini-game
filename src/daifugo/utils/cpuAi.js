@@ -31,10 +31,15 @@ export const getCpuWeakestCards = (hand, count, isRevolution, is11Back) => {
   return sortedHand.slice(0, count);
 };
 
-// 💡 CPU가 12 봄버 발동 시 가장 필요없는 숫자를 파괴 타겟으로 지정하는 기능
-export const getCpuBomberTarget = (hand, isRevolution, is11Back) => {
+// 💡 CPU가 낸 장수(count)만큼 파괴할 대상을 배열로 반환합니다.
+export const getCpuBomberTarget = (hand, isRevolution, is11Back, count) => {
   const sortedHand = sortHand(hand, isRevolution, is11Back);
-  if (sortedHand.length === 0) return '3'; 
-  const weakestNormalCard = sortedHand.find(c => c.rank !== 'Joker') || sortedHand[0];
-  return weakestNormalCard.rank;
+  
+  // 손패에서 조커를 제외하고 약한 순서대로 '중복 없는' 숫자(랭크)들만 뽑아냅니다.
+  const uniqueRanks = [...new Set(sortedHand.filter(c => c.rank !== 'Joker').map(c => c.rank))];
+  
+  if (uniqueRanks.length === 0) return ['3']; // 만약 손에 조커밖에 없다면 기본값 반환
+  
+  // 가장 불필요한(약한) 숫자부터 count개만큼 배열로 잘라서 반환
+  return uniqueRanks.slice(0, count);
 };

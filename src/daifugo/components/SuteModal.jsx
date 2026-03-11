@@ -12,16 +12,12 @@ export default function SuteModal({ roomId, roomData, myId }) {
   const [selectedCards, setSelectedCards] = useState([]);
   const { t } = useLanguage();
   const me = roomData.players.find(p => p.id === myId);
-  const isMyTurn = roomData.players[roomData.turn].id === myId;
-  const discardCount = roomData.table.length;
+  const isMyTurn = roomData.players[roomData.turn]?.id === myId;
+  
+  // 💡 내가 가진 카드보다 버려야 할 카드가 많으면, 가진 것만 버립니다.
+  const discardCount = Math.min(roomData.table.length, me?.hand?.length || 0);
 
-  if (!isMyTurn) {
-    return (
-      <div style={overlayStyle}>
-        <div style={modalStyle}><h2>{t('suteWait')}</h2><p>{t('suteWaitDesc')}</p></div>
-      </div>
-    );
-  }
+  if (!isMyTurn) return <div style={overlayStyle}><div style={modalStyle}><h2>{t('suteWait')}</h2><p>{t('suteWaitDesc')}</p></div></div>;
 
   const toggleCardSelection = (card) => {
     setSelectedCards(prev => {
@@ -37,15 +33,18 @@ export default function SuteModal({ roomId, roomData, myId }) {
     updatedPlayers[roomData.turn].hand = me.hand.filter(card => !selectedCards.find(sc => sc.id === card.id));
     
     let newStatus = roomData.status;
-    if (updatedPlayers[roomData.turn].hand.length === 0) {
+    
+    // 💡 버리고 나서 카드를 모두 털었다면 랭크 부여
+    if (updatedPlayers[roomData.turn].hand.length === 0 && !updatedPlayers[roomData.turn].rank) {
       const finishedCount = updatedPlayers.filter(p => p.rank).length;
-      updatedPlayers[roomData.turn].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
-      if (finishedCount + 1 === 3) {
-        updatedPlayers.find(p => p.hand.length > 0).rank = t('rankDaihinmin'); newStatus = 'game_over';
-      }
+      updatedPlayers[roomData.turn].rank = ['Daifugo', 'Fugo', 'Hinmin'][finishedCount];
+    }
+    if (updatedPlayers.filter(p => p.rank).length >= 3) {
+      const lastPlayer = updatedPlayers.find(p => !p.rank);
+      if (lastPlayer) lastPlayer.rank = 'Daihinmin';
+      newStatus = 'game_over';
     }
 
-    // 💡 버리고 나서 죽은 사람 건너뛰기
     let nextTurn = getNextActiveTurn(roomData.turn, roomData.direction, 1, updatedPlayers);
     await updateDoc(doc(db, 'rooms', roomId), { players: updatedPlayers, pendingAction: null, turn: nextTurn, status: newStatus });
   };

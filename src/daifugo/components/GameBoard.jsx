@@ -19,6 +19,7 @@ export default function GameBoard({ roomId, myId }) {
   const [roomData, setRoomData] = useState(null);
   const [showRules, setShowRules] = useState(false);
   const [selectedCards, setSelectedCards] = useState([]);
+  const [revAlert, setRevAlert] = useState(null); // 💡 혁명 알림창을 화면에 띄울지 결정하는 로컬 상태
   const { t, lang } = useLanguage();
 
   useEffect(() => {
@@ -32,34 +33,51 @@ export default function GameBoard({ roomId, myId }) {
   useEffect(() => {
     if (!roomData || myId !== 'p1') return;
     const explosionTimer = setTimeout(async () => {
-      try { 
-        await deleteDoc(doc(db, 'rooms', roomId)); 
-      } catch(error) {
-        console.error("방 삭제 에러:", error); // 💡 에러를 콘솔에 출력하도록 수정
-      }
+      try { await deleteDoc(doc(db, 'rooms', roomId)); } catch(error) { console.error("방 삭제 에러:", error); }
     }, 5 * 60 * 1000); 
     return () => clearTimeout(explosionTimer);
   }, [roomData, myId, roomId]);
+
+  // 💡 DB에서 새로운 혁명 신호(id)가 감지되면 알림창을 띄우고 3.5초 뒤에 스스로 지웁니다.
+  useEffect(() => {
+    const currentLog = roomData?.revolutionLog;
+    if (currentLog?.id) {
+      // 💡 1. "동기적 연쇄 렌더링" 에러를 피하기 위해 0초 타이머로 감싸서 비동기 처리!
+      const showTimer = setTimeout(() => {
+        setRevAlert(currentLog);
+      }, 0);
+
+      // 💡 2. 3.5초 뒤 알림창 스르륵 닫기
+      const autoCloseTimer = setTimeout(() => {
+        setRevAlert(null);
+      }, 3500);
+
+      return () => {
+        clearTimeout(showTimer);
+        clearTimeout(autoCloseTimer);
+      };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomData?.revolutionLog?.id]); // 💡 3. 노란줄 방지를 위해 객체 대신 고유 ID(숫자)만 감시
 
   useEffect(() => {
     if (!roomData || myId !== 'p1') return;
     if (roomData.status === 'tax_exchange') {
       const updatedPlayers = [...roomData.players];
-      const isTaxDone = updatedPlayers.every(p => p.rank === t('rankHinmin') || p.rank === t('rankDaihinmin') || p.taxPaid);
+      const isTaxDone = updatedPlayers.every(p => p.rank === 'Hinmin' || p.rank === 'Daihinmin' || p.taxPaid);
       if (isTaxDone) { updateDoc(doc(db, 'rooms', roomId), { status: 'playing' }); return; }
 
       let changed = false;
       roomData.players.forEach((p, i) => {
-         if (p.isCpu && !p.taxPaid && (p.rank === t('rankDaifugo') || p.rank === t('rankFugo'))) {
-             const count = p.rank === t('rankDaifugo') ? 2 : 1;
-             const targetRank = p.rank === t('rankDaifugo') ? t('rankDaihinmin') : t('rankHinmin');
+         if (p.isCpu && !p.taxPaid && (p.rank === 'Daifugo' || p.rank === 'Fugo')) {
+             const count = p.rank === 'Daifugo' ? 2 : 1;
+             const targetRank = p.rank === 'Daifugo' ? 'Daihinmin' : 'Hinmin';
              const targetIdx = updatedPlayers.findIndex(op => op.rank === targetRank);
              const worstCards = getCpuWeakestCards(updatedPlayers[i].hand, count, false, false);
              updatedPlayers[i].hand = updatedPlayers[i].hand.filter(c => !worstCards.find(wc => wc.id === c.id));
              updatedPlayers[i].taxPaid = true;
              if (targetIdx !== -1) {
                  updatedPlayers[targetIdx].hand.push(...worstCards);
-                 // 💡 DB에는 안전한 상수(tax) 저장
                  updatedPlayers[targetIdx].receivedMessage = { from: p.name, reason: 'tax', cards: worstCards };
              }
              changed = true;
@@ -74,45 +92,59 @@ export default function GameBoard({ roomId, myId }) {
     if (!currentPlayer || !currentPlayer.isCpu) return;
 
     const cpuTimer = setTimeout(async () => {
-      try { // 💡 에러 발생 시 방지
+      try {
         let nextTurn = roomData.turn, newIsRevolution = roomData.isRevolution, newIs11Back = roomData.is11Back;
         let newPendingAction = roomData.pendingAction, newTable = roomData.table, newPassCount = roomData.passCount, newStatus = roomData.status;
+        let newRevolutionLog = roomData.revolutionLog || null; // 💡 기존 로그 유지
+        
         const updatedPlayers = [...roomData.players];
 
         if (newPendingAction === 'bomber') {
-          const targetRank = getCpuBomberTarget(currentPlayer.hand, newIsRevolution, newIs11Back);
+          const bomberCount = roomData.table.length; 
+          const targetRanksArray = getCpuBomberTarget(currentPlayer.hand, newIsRevolution, newIs11Back, bomberCount);
+          
           const bombedPlayers = updatedPlayers.map(p => ({ 
-            ...p, hand: p.hand.filter(c => c.rank !== targetRank),
-            receivedMessage: { from: currentPlayer.name, reason: 'bomber', rank: targetRank }
+            ...p, hand: p.hand.filter(c => !targetRanksArray.includes(c.rank)), 
+            receivedMessage: { from: currentPlayer.name, reason: 'bomber', rank: targetRanksArray.join(', ') }
           }));
           
           bombedPlayers.forEach((p, idx) => {
             if (p.hand.length === 0 && !p.rank) {
               const finishedCount = bombedPlayers.filter(bp => bp.rank).length;
-              bombedPlayers[idx].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
+              bombedPlayers[idx].rank = ['Daifugo', 'Fugo', 'Hinmin'][finishedCount];
             }
           });
           if (bombedPlayers.filter(p => p.rank).length >= 3) {
-            bombedPlayers.find(p => !p.rank).rank = t('rankDaihinmin'); newStatus = 'game_over';
+            const lastP = bombedPlayers.find(p => !p.rank);
+            if(lastP) lastP.rank = 'Daihinmin';
+            newStatus = 'game_over';
           }
           await updateDoc(doc(db, 'rooms', roomId), { players: bombedPlayers, pendingAction: null, turn: getNextActiveTurn(roomData.turn, roomData.direction, 1, bombedPlayers), status: newStatus });
           return;
         }
 
         if (newPendingAction === 'sute' || newPendingAction === 'watashi') {
-          const actionCards = getCpuWeakestCards(currentPlayer.hand, roomData.table.length, newIsRevolution, newIs11Back);
+          const actionCount = Math.min(roomData.table.length, currentPlayer.hand.length);
+          const actionCards = getCpuWeakestCards(currentPlayer.hand, actionCount, newIsRevolution, newIs11Back);
           updatedPlayers[roomData.turn].hand = currentPlayer.hand.filter(c => !actionCards.find(ac => ac.id === c.id));
+          
           let targetTurn = getNextActiveTurn(roomData.turn, roomData.direction, 1, updatedPlayers);
           
           if (newPendingAction === 'watashi') {
             updatedPlayers[targetTurn].hand = [...updatedPlayers[targetTurn].hand, ...actionCards];
             updatedPlayers[targetTurn].receivedMessage = { from: currentPlayer.name, reason: 'watashi', cards: actionCards };
           }
-          if (updatedPlayers[roomData.turn].hand.length === 0) {
+          
+          if (updatedPlayers[roomData.turn].hand.length === 0 && !updatedPlayers[roomData.turn].rank) {
             const finishedCount = updatedPlayers.filter(p => p.rank).length;
-            updatedPlayers[roomData.turn].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
-            if (finishedCount + 1 === 3) { updatedPlayers.find(p => p.hand.length > 0).rank = t('rankDaihinmin'); newStatus = 'game_over'; }
+            updatedPlayers[roomData.turn].rank = ['Daifugo', 'Fugo', 'Hinmin'][finishedCount];
           }
+          if (updatedPlayers.filter(p => p.rank).length >= 3) {
+            const lastP = updatedPlayers.find(p => !p.rank);
+            if(lastP) lastP.rank = 'Daihinmin';
+            newStatus = 'game_over';
+          }
+
           await updateDoc(doc(db, 'rooms', roomId), { players: updatedPlayers, pendingAction: null, turn: targetTurn, status: newStatus });
           return;
         }
@@ -124,7 +156,12 @@ export default function GameBoard({ roomId, myId }) {
           const playedRank = selectedCards.find(c => c.rank !== 'Joker')?.rank || 'Joker';
           let skipCount = 1;
 
-          if (selectedCards.length >= 4) newIsRevolution = !newIsRevolution;
+          // 💡 CPU 혁명 발생 시 DB에 로그 기록!
+          if (selectedCards.length >= 4) {
+            newIsRevolution = !newIsRevolution;
+            newRevolutionLog = { id: Date.now(), playerName: currentPlayer.name, isRevolution: newIsRevolution };
+          }
+
           if (playedRank === 'J') newIs11Back = true;
           if (playedRank === '5') skipCount += selectedCards.length;
           
@@ -139,8 +176,12 @@ export default function GameBoard({ roomId, myId }) {
             newPendingAction = null; 
             skipCount = 1; 
             const finishedCount = updatedPlayers.filter(p => p.rank).length;
-            updatedPlayers[roomData.turn].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
-            if (finishedCount + 1 === 3) { updatedPlayers.find(p => p.hand.length > 0).rank = t('rankDaihinmin'); newStatus = 'game_over'; }
+            updatedPlayers[roomData.turn].rank = ['Daifugo', 'Fugo', 'Hinmin'][finishedCount];
+            if (finishedCount + 1 === 3) { 
+              const lastP = updatedPlayers.find(p => p.hand.length > 0 && !p.rank);
+              if(lastP) lastP.rank = 'Daihinmin'; 
+              newStatus = 'game_over'; 
+            }
           }
           if (newStatus !== 'game_over' && skipCount > 0) nextTurn = getNextActiveTurn(roomData.turn, roomData.direction, skipCount, updatedPlayers);
         } else {
@@ -148,7 +189,11 @@ export default function GameBoard({ roomId, myId }) {
           nextTurn = getNextActiveTurn(roomData.turn, roomData.direction, 1, updatedPlayers);
           if (newPassCount >= updatedPlayers.filter(p => p.hand.length > 0).length - 1) { newTable = []; newPassCount = 0; newIs11Back = false; }
         }
-        await updateDoc(doc(db, 'rooms', roomId), { table: newTable, players: updatedPlayers, turn: nextTurn, passCount: newPassCount, isRevolution: newIsRevolution, is11Back: newIs11Back, pendingAction: newPendingAction, status: newStatus });
+        await updateDoc(doc(db, 'rooms', roomId), { 
+          table: newTable, players: updatedPlayers, turn: nextTurn, passCount: newPassCount, 
+          isRevolution: newIsRevolution, is11Back: newIs11Back, pendingAction: newPendingAction, 
+          status: newStatus, revolutionLog: newRevolutionLog // 💡 혁명 로그 저장
+        });
       } catch (err) { console.error("CPU Error:", err); }
     }, 1500);
     return () => clearTimeout(cpuTimer);
@@ -174,9 +219,16 @@ export default function GameBoard({ roomId, myId }) {
 
     let nextTurn = roomData.turn, newIsRevolution = roomData.isRevolution, newIs11Back = roomData.is11Back, newPendingAction = roomData.pendingAction;
     let skipCount = 1, newStatus = roomData.status, newTable = selectedCards, newPassCount = 0;
+    let newRevolutionLog = roomData.revolutionLog || null;
+
     const playedRank = selectedCards.find(c => c.rank !== 'Joker')?.rank || 'Joker';
 
-    if (selectedCards.length >= 4) newIsRevolution = !newIsRevolution;
+    // 💡 유저가 혁명 발생 시 DB에 로그 기록!
+    if (selectedCards.length >= 4) {
+      newIsRevolution = !newIsRevolution;
+      newRevolutionLog = { id: new Date.getTime(), playerName: me.name, isRevolution: newIsRevolution };
+    }
+
     if (playedRank === 'J') newIs11Back = true;
     if (playedRank === '5') skipCount += selectedCards.length;
 
@@ -190,12 +242,20 @@ export default function GameBoard({ roomId, myId }) {
       newPendingAction = null;
       skipCount = 1;
       const finishedCount = updatedPlayers.filter(p => p.rank).length;
-      updatedPlayers[roomData.turn].rank = [t('rankDaifugo'), t('rankFugo'), t('rankHinmin')][finishedCount];
-      if (finishedCount + 1 === 3) { updatedPlayers.find(p => p.hand.length > 0).rank = t('rankDaihinmin'); newStatus = 'game_over'; }
+      updatedPlayers[roomData.turn].rank = ['Daifugo', 'Fugo', 'Hinmin'][finishedCount];
+      if (finishedCount + 1 === 3) { 
+        const lastP = updatedPlayers.find(p => p.hand.length > 0 && !p.rank);
+        if(lastP) lastP.rank = 'Daihinmin'; 
+        newStatus = 'game_over'; 
+      }
     }
     if (newStatus !== 'game_over' && skipCount > 0) nextTurn = getNextActiveTurn(roomData.turn, roomData.direction, skipCount, updatedPlayers);
 
-    await updateDoc(doc(db, 'rooms', roomId), { table: newTable, players: updatedPlayers, turn: nextTurn, passCount: newPassCount, isRevolution: newIsRevolution, is11Back: newIs11Back, pendingAction: newPendingAction, status: newStatus });
+    await updateDoc(doc(db, 'rooms', roomId), { 
+      table: newTable, players: updatedPlayers, turn: nextTurn, passCount: newPassCount, 
+      isRevolution: newIsRevolution, is11Back: newIs11Back, pendingAction: newPendingAction, 
+      status: newStatus, revolutionLog: newRevolutionLog // 💡 혁명 로그 저장
+    });
     setSelectedCards([]);
   };
 
@@ -210,8 +270,10 @@ export default function GameBoard({ roomId, myId }) {
 
   const startNextGame = async () => {
     const { updatedPlayers, startingTurn } = distributeCards(roomData.players.map(p => ({ ...p, hand: [], taxPaid: false })));
-    const daihinminIdx = updatedPlayers.findIndex(p => p.rank === t('rankDaihinmin')), hinminIdx = updatedPlayers.findIndex(p => p.rank === t('rankHinmin'));
-    const daifugoIdx = updatedPlayers.findIndex(p => p.rank === t('rankDaifugo')), fugoIdx = updatedPlayers.findIndex(p => p.rank === t('rankFugo'));
+    const daihinminIdx = updatedPlayers.findIndex(p => p.rank === 'Daihinmin');
+    const hinminIdx = updatedPlayers.findIndex(p => p.rank === 'Hinmin');
+    const daifugoIdx = updatedPlayers.findIndex(p => p.rank === 'Daifugo');
+    const fugoIdx = updatedPlayers.findIndex(p => p.rank === 'Fugo');
 
     if (daihinminIdx !== -1 && daifugoIdx !== -1) {
        const bestCards = sortHand(updatedPlayers[daihinminIdx].hand, false, false).slice(-2);
@@ -225,20 +287,23 @@ export default function GameBoard({ roomId, myId }) {
        updatedPlayers[fugoIdx].hand.push(...bestCards);
        updatedPlayers[fugoIdx].receivedMessage = { from: updatedPlayers[hinminIdx].name, reason: 'tax_force', cards: bestCards };
     }
-    await updateDoc(doc(db, 'rooms', roomId), { status: 'tax_exchange', players: updatedPlayers, turn: startingTurn, table: [], passCount: 0, isRevolution: false, is11Back: false, pendingAction: null });
+    await updateDoc(doc(db, 'rooms', roomId), { 
+      status: 'tax_exchange', players: updatedPlayers, turn: startingTurn, 
+      table: [], passCount: 0, isRevolution: false, is11Back: false, 
+      pendingAction: null, revolutionLog: null // 새 게임 시작 시 알림 리셋
+    });
   };
 
   const canSubmit = isMyTurn && selectedCards.length > 0 && !roomData.pendingAction && !me.receivedMessage;
   const canPass = isMyTurn && !roomData.pendingAction && !me.receivedMessage;
   const ccwIndices = [1, 2, 0, 3]; 
 
-  // 💡 번역 처리기
   const reasonText = (reason) => {
     return { 'bomber': t('reason12'), 'watashi': t('reason7'), 'tax': t('reasonTax'), 'tax_force': t('reasonTaxForce') }[reason] || reason;
   };
 
   if (roomData.status === 'game_over') {
-    const sortedPlayers = [...roomData.players].sort((a,b) => ({ [t('rankDaifugo')]:1, [t('rankFugo')]:2, [t('rankHinmin')]:3, [t('rankDaihinmin')]:4 }[a.rank] - { [t('rankDaifugo')]:1, [t('rankFugo')]:2, [t('rankHinmin')]:3, [t('rankDaihinmin')]:4 }[b.rank]));
+    const sortedPlayers = [...roomData.players].sort((a,b) => ({ 'Daifugo':1, 'Fugo':2, 'Hinmin':3, 'Daihinmin':4 }[a.rank] - { 'Daifugo':1, 'Fugo':2, 'Hinmin':3, 'Daihinmin':4 }[b.rank]));
     return (
       <div className="menu-container">
         <h1 style={{ fontSize: '3em', marginBottom: '10px' }}>{t('gameOverTitle')}</h1>
@@ -246,7 +311,9 @@ export default function GameBoard({ roomId, myId }) {
           {sortedPlayers.map((p, i) => (
             <div key={p.id} style={{ fontSize: '1.5em', margin: '15px 0', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #7f8c8d', paddingBottom: '10px' }}>
               <span>{i+1}. {p.name}</span>
-              <strong style={{ color: p.rank === t('rankDaifugo') ? '#f1c40f' : (p.rank === t('rankDaihinmin') ? '#e74c3c' : 'white') }}>{p.rank}</strong>
+              <strong style={{ color: p.rank === 'Daifugo' ? '#f1c40f' : (p.rank === 'Daihinmin' ? '#e74c3c' : 'white') }}>
+                {t('rank' + p.rank)}
+              </strong>
             </div>
           ))}
         </div>
@@ -275,7 +342,20 @@ export default function GameBoard({ roomId, myId }) {
       </div>
       {isMyTurn && <div className="my-turn-banner">{t('myTurnBanner')}</div>}
 
-      {/* 💡 에러 방지 처리된 통합 알림 모달 */}
+      {/* 💡 혁명 발동 화려한 알림 모달 (3.5초 뒤 자동 닫힘) */}
+      {revAlert && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 10005, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ background: revAlert.isRevolution ? '#c0392b' : '#2980b9', color: 'white', padding: '40px 60px', borderRadius: '20px', textAlign: 'center', boxShadow: '0 0 50px rgba(0,0,0,1)', animation: 'pulseBanner 0.5s infinite alternate', border: '5px solid #f1c40f' }}>
+            <h1 style={{ fontSize: 'min(10vw, 4em)', margin: '0 0 20px 0' }}>
+              {revAlert.isRevolution ? t('revAlertTitleOn') : t('revAlertTitleOff')}
+            </h1>
+            <h2 style={{ fontSize: 'min(6vw, 2.5em)', margin: 0 }}>
+              {revAlert.playerName}{revAlert.isRevolution ? t('revAlertOn') : t('revAlertOff')}
+            </h2>
+          </div>
+        </div>
+      )}
+
       {me.receivedMessage && (
         <div className="received-overlay">
           <div className="received-modal">
@@ -289,7 +369,6 @@ export default function GameBoard({ roomId, myId }) {
                 <h3 style={{ color: '#2980b9' }}>{t('newCardTitle')}</h3>
                 <p><strong>{me.receivedMessage.from}</strong>{t('from')}{reasonText(me.receivedMessage.reason)}{t('receivedMsg')}</p>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', margin: '20px 0' }}>
-                  {/* ?.map을 사용하여 카드가 없어도 에러가 나지 않음 */}
                   {me.receivedMessage.cards?.map(c => (
                     <div key={c.id} style={{ padding: '10px', fontSize: '20px', fontWeight: 'bold', background: '#ecf0f1', border: '2px solid #bdc3c7', borderRadius: '5px', color: getCardColor(c.suit) }}>
                       {c.suit === 'Joker' ? '🃏 Joker' : `${getSuitIcon(c.suit)} ${c.rank}`}
@@ -325,13 +404,13 @@ export default function GameBoard({ roomId, myId }) {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'rgba(0,0,0,0.3)', borderRadius: '15px', padding: '20px', marginBottom: '20px' }}>
           <h2 style={{ color: '#f1c40f', margin: '0 0 10px 0' }}>{t('clearedTitle')}</h2>
           <p style={{ margin: 0 }}>{t('clearedDesc')}</p>
-          <p style={{ marginTop: '15px', fontSize: '1.2em' }}>{t('currentRank')} <strong style={{ color: '#e74c3c', marginLeft: '5px' }}>{me.rank}</strong></p>
+          <p style={{ marginTop: '15px', fontSize: '1.2em' }}>{t('currentRank')} <strong style={{ color: '#e74c3c', marginLeft: '5px' }}>{me.rank ? t('rank' + me.rank) : ''}</strong></p>
         </div>
       ) : (
         <>
           <div className="score-area" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <h4 style={{ textAlign: 'center', margin: 0 }}>
-              {lang === 'ko' ? `${me?.name}의 카드` : `${me?.name}の手札`}
+              {lang === 'ko' ? `내(${me?.name}) 카드` : `${me?.name}の手札`}
             </h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px' }}>
               {me?.hand?.map((card, idx) => (

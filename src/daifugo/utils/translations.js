@@ -47,7 +47,9 @@ export const translations = {
     bombWait: '12 봄버 대기 중...',
     bombWaitDesc: '현재 턴인 플레이어가 파괴할 숫자를 고르고 있습니다.',
     bombTitle: '💣 12 봄버 (Q)',
-    bombDesc: '게임에서 완전히 파괴할 숫자를 하나 선택하세요!',
+    bombDesc1: '게임에서 완전히 파괴할 숫자를 ',
+    bombDesc2: '개 선택하세요!',
+    bombBtn: '개 파괴하기 💣',
     suteWait: '10 스테 발동!',
     suteWaitDesc: '현재 턴인 플레이어가 쓰레기 카드를 버리고 있습니다...',
     suteTitle: '🗑️ 10 스테 (버리기)',
@@ -78,14 +80,19 @@ export const translations = {
     reason12: '12 봄버',
     frTitle: '대부호 (Daifugo) 초보자 가이드',
     frGoal: '🎯 승리 조건: 손에 있는 카드를 가장 먼저 다 내면 승리합니다!',
-    frBasicTitle: '1. 카드의 강함',
+    frBasicTitle: '1. 카드의 강기',
     frBasicDesc: '3이 가장 약하고, 2가 가장 강합니다. (3 < 4 < ... < K < A < 2). 조커는 숫자 상관없이 2보다 강한 만능 카드입니다.',
     frPlayTitle: '2. 카드 내는 법',
     frPlayDesc: '바닥에 깔린 카드보다 더 강한 숫자를 내야 합니다. 바닥에 2장이 깔려있다면 나도 2장을 묶어서 내야 합니다.',
     frPassTitle: '3. 패스 (Pass)와 선잡기',
     frPassDesc: '낼 카드가 없거나 내기 싫다면 패스할 수 있습니다. 나 빼고 모두가 패스하면 바닥의 카드가 치워지고, 내가 원하는 카드를 마음대로 낼 수 있습니다(선 턴).',
     frRankTitle: '4. 계급과 세금 (Tax)',
-    frRankDesc: '빨리 끝낸 순서대로 대부호, 부호, 빈민, 대빈민 계급을 얻습니다. 다음 판이 시작될 때 빈민들은 가장 좋은 카드를 부호들에게 바쳐야 합니다.'
+    frRankDesc: '빨리 끝낸 순서대로 대부호, 부호, 빈민, 대빈민 계급을 얻습니다. 다음 판이 시작될 때 빈민들은 가장 좋은 카드를 부호들에게 바쳐야 합니다.',
+    // 💡 혁명 전용 텍스트
+    revAlertTitleOn: '🔥 혁명 발동! 🔥',
+    revAlertTitleOff: '❄️ 혁명 진압! ❄️',
+    revAlertOn: '님이 혁명을 일으켰습니다!!!',
+    revAlertOff: '님이 혁명을 진압(해제)했습니다!!!'
   },
   ja: {
     title: '大富豪 (Daifugo)',
@@ -134,7 +141,9 @@ export const translations = {
     bombWait: '12ボンバー 待機中...',
     bombWaitDesc: '現在ターンのプレイヤーが破壊する数字を選んでいます。',
     bombTitle: '💣 12ボンバー (Q)',
-    bombDesc: 'ゲームから完全に破壊する数字を1つ選んでください！',
+    bombDesc1: 'ゲームから完全に破壊する数字を ',
+    bombDesc2: 'つ選んでください！',
+    bombBtn: 'つ破壊する 💣',
     suteWait: '10捨て 待機中...',
     suteWaitDesc: '現在ターンのプレイヤーが捨てるカードを選んでいます...',
     suteTitle: '🗑️ 10捨て',
@@ -172,6 +181,11 @@ export const translations = {
     frPassTitle: '3. パスと親（スタート）',
     frPassDesc: '出せない、または出したくない時はパスできます。自分以外の全員がパスしたら場が流れ、好きなカードを自由に出せます（親になります）。',
     frRankTitle: '4. 階級と税金',
-    frRankDesc: '早く上がった順に、大富豪、富豪、貧民、大貧民となります。次のゲームが始まる時、貧民は最も強いカードを富豪に献上しなければなりません。'
+    frRankDesc: '早く上がった順に、大富豪、富豪、貧民、大貧民となります。次のゲームが始まる時、貧民は最も強いカードを富豪に献上しなければなりません。',
+    // 💡 혁명 전용 텍스트
+    revAlertTitleOn: '🔥 革命発動! 🔥',
+    revAlertTitleOff: '❄️ 革命鎮圧! ❄️',
+    revAlertOn: 'さんが革命を起こしました!!!',
+    revAlertOff: 'さんが革命を鎮圧(解除)しました!!!'
   }
 };

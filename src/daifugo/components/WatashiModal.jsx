@@ -12,8 +12,10 @@ export default function WatashiModal({ roomId, roomData, myId }) {
   const [selectedCards, setSelectedCards] = useState([]);
   const { t } = useLanguage();
   const me = roomData.players.find(p => p.id === myId);
-  const isMyTurn = roomData.players[roomData.turn].id === myId;
-  const cardsToPassCount = roomData.table.length;
+  const isMyTurn = roomData.players[roomData.turn]?.id === myId;
+  
+  // 💡 내가 가진 카드보다 넘겨야 할 카드가 많으면, 가진 것만 넘깁니다.
+  const cardsToPassCount = Math.min(roomData.table.length, me?.hand?.length || 0);
 
   if (!isMyTurn) return <div style={overlayStyle}><div style={modalStyle}><h2>{t('watashiWait')}</h2><p>{t('watashiWaitDesc')}</p></div></div>;
 
@@ -34,7 +36,20 @@ export default function WatashiModal({ roomId, roomData, myId }) {
     updatedPlayers[nextTurn].hand = [...updatedPlayers[nextTurn].hand, ...selectedCards];
     updatedPlayers[nextTurn].receivedMessage = { from: me.name, reason: 'watashi', cards: selectedCards };
 
-    await updateDoc(doc(db, 'rooms', roomId), { players: updatedPlayers, pendingAction: null, turn: nextTurn });
+    let newStatus = roomData.status;
+    
+    // 💡 와타시로 인해 카드를 모두 털었다면 랭크 부여 및 종료 체크
+    if (updatedPlayers[roomData.turn].hand.length === 0 && !updatedPlayers[roomData.turn].rank) {
+      const finishedCount = updatedPlayers.filter(p => p.rank).length;
+      updatedPlayers[roomData.turn].rank = ['Daifugo', 'Fugo', 'Hinmin'][finishedCount];
+    }
+    if (updatedPlayers.filter(p => p.rank).length >= 3) {
+      const lastPlayer = updatedPlayers.find(p => !p.rank);
+      if (lastPlayer) lastPlayer.rank = 'Daihinmin';
+      newStatus = 'game_over';
+    }
+
+    await updateDoc(doc(db, 'rooms', roomId), { players: updatedPlayers, pendingAction: null, turn: nextTurn, status: newStatus });
   };
 
   return (
