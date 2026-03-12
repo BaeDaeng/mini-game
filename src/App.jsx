@@ -10,6 +10,7 @@ import YachtMulti from './yacht-multi/index.jsx';
 import Daifugo from './daifugo/index.jsx';
 import Gomoku from './gomoku/index.jsx';
 import Superhot from './superhot/superhot.jsx';
+import CardGamePortal from './card-games/index.jsx';
 import './App.css'; 
 
 // 메인 로비 화면 컴포넌트
@@ -28,6 +29,7 @@ const MainLobby = () => {
     { path: '/daifugo', title: '대부호 카드', icon: '🃏', img: '/images/daifugo.png', color: '#ff0055' },
     { path: '/gomoku', title: '오목', icon: '⚫', img: '/images/gomoku.png', color: '#aaaaaa' },
     { path: '/superhot', title: '슈퍼핫(PC)', icon: '🔥', img: '/images/superhot.png', color: '#ff4d00' },
+    { path: '/cards', title: '카드 게임 모음', icon: '🃏', img: '/images/card-games.png', color: '#8e44ad' },
   ];
 
   return (
@@ -101,6 +103,7 @@ const App = () => {
         <Route path="/daifugo" element={<Daifugo />} />
         <Route path="/gomoku" element={<Gomoku />} />
         <Route path="/superhot" element={<Superhot />} />
+        <Route path="/cards" element={<CardGamePortal />} />
       </Routes>
     </Router>
   );

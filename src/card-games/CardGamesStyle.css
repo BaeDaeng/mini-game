@@ -1,0 +1,227 @@
+/* src/card-games/CardGamesStyle.css */
+
+.card-menu-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  padding: 20px;
+  font-family: 'Arial Black', sans-serif;
+  text-align: center;
+}
+
+.card-game-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #0b5345; /* 카지노 테이블 같은 짙은 초록색 */
+  color: #fff;
+  padding: 60px 20px 20px 20px;
+  position: relative;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.card-back-btn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  padding: 8px 12px;
+  background: #34495e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.card-info, .card-message {
+  font-size: 1.2rem;
+  margin: 10px 0;
+  background: rgba(0,0,0,0.3);
+  padding: 10px 20px;
+  border-radius: 10px;
+}
+
+/* 카드 이미지 공통 스타일 */
+.playing-card {
+  width: 90px;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 2px 4px 8px rgba(0,0,0,0.5);
+  transition: transform 0.2s;
+  background-color: white; /* 투명 배경 이미지일 경우를 대비 */
+}
+
+/* High & Low용 카드 영역 */
+.card-display-area {
+  display: flex;
+  gap: 40px;
+  margin: 30px 0;
+}
+
+.card-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+}
+
+.card-slot .playing-card {
+  width: 120px; /* 메인 카드는 좀 더 크게 */
+}
+
+/* 블랙잭 핸드 영역 */
+.hand-area {
+  margin-bottom: 30px;
+  text-align: center;
+  width: 100%;
+}
+
+.card-row {
+  display: flex;
+  justify-content: center;
+  gap: -30px; /* 카드가 살짝 겹치게 보이도록 음수 마진 효과 대체 */
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.card-row .playing-card {
+  margin: 0 5px; /* 카드가 나란히 예쁘게 서 있도록 */
+}
+
+/* 버튼 스타일 */
+.card-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.card-btn {
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  transition: transform 0.1s;
+}
+
+.card-btn:active { transform: scale(0.95); }
+
+.card-btn.start { background-color: #2980b9; }
+.card-btn.high { background-color: #e74c3c; }
+.card-btn.low { background-color: #3498db; }
+.card-btn.hit { background-color: #27ae60; }
+.card-btn.stand { background-color: #e67e22; }
+
+/* 메인 메뉴 버튼들 */
+.menu-btn {
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  margin: 10px;
+  width: 250px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  background-color: #8e44ad;
+  color: white;
+  transition: 0.3s;
+}
+.menu-btn:hover { background-color: #9b59b6; transform: scale(1.05); }
+
+/* 우측 상단 룰북 버튼 */
+.card-rule-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  padding: 8px 12px;
+  background: #e67e22;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* 룰북 모달 오버레이 */
+.card-rule-overlay {
+  position: fixed; 
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.75); 
+  z-index: 99999;
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
+}
+
+/* 룰북 모달 창 */
+.card-rule-modal {
+  background: #fff; 
+  color: #333; 
+  padding: 25px; 
+  border-radius: 15px;
+  width: 90%; 
+  max-width: 450px; 
+  max-height: 85vh;
+  display: flex; 
+  flex-direction: column; 
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.card-rule-content {
+  overflow-y: auto; 
+  text-align: left; 
+  line-height: 1.6; 
+  font-size: 1.05rem;
+}
+
+.card-rule-content ul {
+  padding-left: 20px;
+}
+
+.card-rule-content li {
+  margin-bottom: 10px;
+}
+
+/* 전적 및 연승/연패 표시 UI */
+.stats-display {
+  margin-top: 30px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 12px 24px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.stats-display p {
+  margin: 5px 0;
+  font-size: 1.1rem;
+}
+
+/* 연승 효과 (노란색/금색) */
+.streak.win {
+  color: #f1c40f;
+  font-weight: bold;
+  animation: pulse 1.5s infinite;
+}
+
+/* 연패 효과 (빨간색) */
+.streak.lose {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
