@@ -1,131 +1,254 @@
-/* 1. 화면 전체 너비 확보 및 여백 제거 */
+/* 1. 기본 여백 제거 및 배경색 통일 */
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  background-color: #f2f4f6;
-  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", Roboto, "Noto Sans KR", sans-serif;
-  color: #191f28;
+  background-color: #0d0016;
+  color: #fff;
 }
 
-/* 2. 최상위 요소에서 무조건 좌우 중앙으로 밀어주기 */
+/* 2. 최상위 요소 스크롤 및 화면 채우기 */
 #root {
   width: 100%;
-  height: 100vh; /* 🔥 화면 전체 높이를 꽉 채우기 */
-  display: flex;
-  justify-content: center;
-  overflow-y: auto; /* 🔥 수박 게임의 스크롤 잠금을 무시하고 메인 화면에서 강제로 스크롤(드래그) 가능하게 만듭니다 */
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
-/* 3. 로비 컨테이너 */
-.lobby-container {
+/* 3. 베이퍼웨이브 디자인 변수 및 컨테이너 */
+:root {
+  --neon-pink: #ff00ff;
+  --neon-blue: #00ffff;
+  --bg-black: #0d0016;
+}
+
+.vapor-container {
+  background: var(--bg-black);
+  min-height: 100vh;
   width: 100%;
-  max-width: 800px; /* PC에서 최대 크기 제한 */
-  padding: 40px 20px;
-  box-sizing: border-box; /* 패딩 때문에 너비가 틀어지는 것 방지 */
+  font-family: 'Arial Black', sans-serif;
+  position: relative;
+  padding-top: 40px; 
+  padding-bottom: 80px; 
 }
 
-/* 상단 타이틀 */
-.header {
-  text-align: center;
-  margin-bottom: 40px;
+/* 배경 흐르는 텍스트 */
+.bg-scroll-text {
+  position: absolute;
+  top: 15%;
+  font-size: 8rem;
+  white-space: nowrap;
+  opacity: 0.05;
+  font-weight: 900;
+  animation: scroll 20s linear infinite;
+  pointer-events: none;
 }
 
-.header h1 {
-  font-size: 32px;
-  font-weight: 800;
-  color: #191f28;
-  letter-spacing: -0.5px;
-  margin: 0;
+@keyframes scroll {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
 }
 
-.header h2 {
-  display: inline-block; /* 텍스트 크기만큼만 배경색 적용 */
-  font-size: 18px;
-  font-weight: 700;
-  color: #3182f6;     
-  background-color: #e8f3ff; /* 연한 블루 배경 */
-  padding: 4px 12px;
-  border-radius: 8px;  /* 둥근 모서리 */
-  margin-top: 8px;
+/* 화면 전체를 덮는 스캔라인 오버레이 */
+.vapor-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+              linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+  z-index: 10;
 }
 
-/* 4. 게임 리스트 (Grid 대신 Flex로 확실하게 가운데 모으기) */
-.game-grid {
+/* 상단 헤더 및 타이틀 */
+.vapor-header {
   display: flex;
-  flex-wrap: wrap;        /* 화면이 좁아지면 자동으로 아래로 내려감 */
-  justify-content: center; /* 카드들을 항상 가운데 정렬 */
-  gap: 24px;
+  justify-content: center; /* 중앙 정렬 */
+  align-items: center;
+  padding: 20px 60px 40px 60px;
+  position: relative;
+  z-index: 20;
 }
 
-/* 개별 게임 카드 */
-.game-card {
-  width: 100%;
-  max-width: 340px; /* 카드가 무한정 커지지 않도록 크기 고정 */
-  background-color: #ffffff;
-  border-radius: 24px;
-  overflow: hidden;
+.header-titles {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+/* GLITCH_OS 대신 MINI-GAME을 메인 네온 로고로 사용 */
+.main-logo {
+  font-size: 4rem; /* 텍스트 크기 확대 */
+  margin: 0;
+  background: linear-gradient(to bottom, var(--neon-blue), var(--neon-pink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 15px var(--neon-pink));
+  text-transform: uppercase;
+  letter-spacing: 5px;
+}
+
+/* 비스듬한 효과 제거하여 정면을 바라보는 카드 그리드 */
+.vapor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 30px;
+  padding: 0 60px 60px 60px;
+  position: relative;
+  z-index: 20;
+}
+
+/* 카드 전체 디자인 */
+.vapor-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 5px ridge var(--accent);
+  border-top: 0.2px outset var(--accent);
+  border-right: 0.2px outset var(--accent);
+  border-bottom: 0.2px outset var(--accent);
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-/* 마우스 호버(Hover) 효과 */
-.game-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+/* 마우스 호버 시 카드 비틀림 효과 제거, 크기만 확대 */
+.vapor-card:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 30;
+  box-shadow: 0 0 20px var(--accent);
 }
 
-/* 썸네일 이미지 영역 */
-.image-wrapper {
+/* 썸네일 이미지 영역 (고정된 영역 설정) */
+.vapor-image-wrapper {
   width: 100%;
-  height: 200px;
-  background-color: #e5e8eb;
+  height: 220px; 
+  position: relative;
   overflow: hidden;
+  border-bottom: 2px solid var(--accent);
 }
 
-.image-wrapper img {
+/* 이미지는 잘린 채로 들어가도록 object-fit: cover 사용 */
+.vapor-image-wrapper img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
+  object-fit: cover; 
+  transition: transform 0.4s ease, filter 0.4s ease;
+  filter: grayscale(30%) contrast(120%); 
 }
 
-.game-card:hover .image-wrapper img {
-  transform: scale(1.05);
+/* 마우스 호버 시 이미지 확대 및 선명해짐 */
+.vapor-card:hover .vapor-image-wrapper img {
+  transform: scale(1.1);
+  filter: grayscale(0%) contrast(100%);
 }
 
-/* 카드 하단 텍스트 및 버튼 영역 */
-.card-info {
+/* 이미지 위에 덮이는 네온 색상 오버레이 */
+.image-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  opacity: 0.15;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* 텍스트 정보 영역 */
+.vapor-card-content {
   padding: 24px;
+  position: relative;
+  flex-grow: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.card-info h2 {
+.vapor-info h3 {
+  font-size: 1.4rem;
+  text-transform: uppercase;
   margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: #333d4b;
+  letter-spacing: -1px;
 }
 
-/* 심플한 스타일의 옅은 블루 버튼 */
+.vapor-bar {
+  width: 40px;
+  height: 4px;
+  background: var(--accent);
+  margin-top: 10px;
+  transition: 0.3s;
+}
+
+.vapor-card:hover .vapor-bar {
+  width: 100%;
+}
+
+/* 시작하기 버튼 스타일 */
 .start-btn {
-  background-color: #e8f3ff;
-  color: #3182f6;
-  border: none;
+  background-color: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
   padding: 10px 18px;
   border-radius: 12px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: 0.3s;
 }
 
-.game-card:hover .start-btn {
-  background-color: #3182f6;
-  color: #ffffff;
+.vapor-card:hover .start-btn {
+  background-color: var(--accent);
+  color: #000;
+  box-shadow: 0 0 15px var(--accent);
+}
+
+.index-num {
+  position: absolute;
+  right: 15px;
+  bottom: 15px;
+  font-size: 3.5rem;
+  line-height: 1;
+  opacity: 0.1;
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* 하단 푸터 */
+.vapor-footer {
+  position: fixed;
+  bottom: 15px;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  font-size: 0.8rem;
+  letter-spacing: 5px;
+  color: var(--neon-pink);
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* 🔥============= 여기서부터 추가된 부분 =============🔥 */
+/* Bpp의 원래 디자인을 건드리지 않고 겉에만 두르는 래퍼 */
+.grid-wrapper {
+  position: relative;
+  margin: 0 40px; /* Bpp 그리드와 자연스럽게 어울리도록 양옆 여백만 설정 */
+  padding-top: 40px; /* 테두리 위쪽 여유 공간 */
+  z-index: 20;
+}
+
+/* Cpp에서 가져온 네온 픽셀 테두리 프레임 */
+.grid-pixel-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 4px solid var(--neon-blue);
+  border-radius: 10px;
+  box-shadow: 0 0 15px var(--neon-blue);
+  pointer-events: none;
+  z-index: 15;
 }

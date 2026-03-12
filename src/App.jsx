@@ -1,140 +1,88 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import BrockBrick from './brock-brick/brock-brick';
-import CatchButton from './catch-the-button/catch-the-button';
-import SuikaGame from './suika-game/suika-game'; 
-import StackBlock from './stack-the-block/stack-the-block';
-import BalloonUp from './balloon-up/balloon-up';
-import RaccoonSurvival from './raccoon-survival/raccoon-survival';
+import BrockBrick from './brock-brick/brock-brick.jsx';
+import CatchButton from './catch-the-button/catch-the-button.jsx';
+import SuikaGame from './suika-game/suika-game.jsx'; 
+import StackBlock from './stack-the-block/stack-the-block.jsx';
+import BalloonUp from './balloon-up/balloon-up.jsx';
+import RaccoonSurvival from './raccoon-survival/raccoon-survival.jsx';
 import YachtMulti from './yacht-multi/index.jsx';
 import Daifugo from './daifugo/index.jsx';
 import Gomoku from './gomoku/index.jsx';
 import Superhot from './superhot/superhot.jsx';
-import './App.css';
+import './App.css'; // 설정하신 CSS 파일명으로 맞춰주세요
 
 // 메인 로비 화면 컴포넌트
 const MainLobby = () => {
   const navigate = useNavigate();
+  
+  // 기존 이미지 경로를 포함한 게임 데이터 배열
+  const games = [
+    { path: '/brick', title: '블럭깨기', icon: '🧱', img: '/images/brock-brick.png', color: '#ff00ff' },
+    { path: '/button', title: '버튼잡기', icon: '🎯', img: '/images/catch-the-button.png', color: '#00ffff' },
+    { path: '/suika', title: '호박게임', icon: '🎃', img: '/images/suika-game.png', color: '#ffff00' },
+    { path: '/stackb', title: '무한쌓기', icon: '🏗️', img: '/images/stack-the-block.png', color: '#00ff00' },
+    { path: '/balloon', title: '풍선띄우기', icon: '🎈', img: '/images/balloon-up.png', color: '#ff00aa' },
+    { path: '/raccoon', title: '라쿤서바이벌', icon: '🦝', img: '/images/raccoon-survival.png', color: '#ff8800' },
+    { path: '/yacht', title: '야추! 멀티!', icon: '🎲', img: '/images/yacht-multi.png', color: '#ffffff' },
+    { path: '/daifugo', title: '대부호 카드', icon: '🃏', img: '/images/daifugo.png', color: '#ff0055' },
+    { path: '/gomoku', title: '오목', icon: '⚫', img: '/images/gomoku.png', color: '#aaaaaa' },
+    { path: '/superhot', title: '슈퍼핫(PC)', icon: '🔥', img: '/images/superhot.png', color: '#ff4d00' },
+  ];
 
   return (
-    <div className="lobby-container">
-      <header className="header">
-        <h1>Mini-Game</h1>
-        <h2>Swipe Up!!! 아래에도 있어요</h2>
+    <div className="vapor-container">
+      {/* 배경에 흐르는 텍스트 애니메이션 */}
+      <div className="bg-scroll-text">CYBERSPACE // DISTORTION // REALITY_ERROR // FUTURE_NOSTALGIA</div>
+      
+      {/* 스캔라인 오버레이 */}
+      <div className="vapor-overlay"></div>
+      
+      <header className="vapor-header">
+        {/* GLITCH_OS 제거, MINI-GAME 텍스트 추가 */}
+        <div className="header-titles" onClick={() => navigate('/')}>
+          <h1 className="main-logo">MINI-GAME</h1>
+        </div>
       </header>
 
-      <main className="game-grid">
-        {/* 1. 블럭깨기 카드 */}
-        <div className="game-card" onClick={() => navigate('/brick')}>
-          <div className="image-wrapper">
-            <img src="/images/brock-brick.png" alt="블럭깨기 미리보기" />
-          </div>
-          <div className="card-info">
-            <h2>블럭깨기</h2>
-            <button className="start-btn">시작하기</button>
-          </div>
-        </div>
+      {/* 🔥 여기에 grid-wrapper와 grid-pixel-frame을 추가하여 감싸줍니다 🔥 */}
+      <div className="grid-wrapper">
+        <div className="grid-pixel-frame"></div>
+        
+        <main className="vapor-grid">
+          {games.map((game, index) => (
+            <div 
+              key={index} 
+              className="vapor-card" 
+              style={{"--accent": game.color}}
+              onClick={() => navigate(game.path)}
+            >
+              {/* 사진 썸네일 영역 */}
+              <div className="vapor-image-wrapper">
+                <img src={game.img} alt={`${game.title} 미리보기`} />
+                <div className="image-overlay"></div>
+              </div>
 
-        {/* 2. 버튼잡기 카드 */}
-        <div className="game-card" onClick={() => navigate('/button')}>
-          <div className="image-wrapper">
-            <img src="/images/catch-the-button.png" alt="버튼잡기 미리보기" />
-          </div>
-          <div className="card-info">
-            <h2>버튼잡기</h2>
-            <button className="start-btn">시작하기</button>
-          </div>
-        </div>
+              {/* 카드 텍스트 및 시작 버튼 영역 */}
+              <div className="vapor-card-content">
+                <div className="vapor-info">
+                  <h3>{game.icon}{game.title}</h3>
+                  <div className="vapor-bar"></div>
+                </div>
+                <button className="start-btn">시작하기</button>
+                {/* 우측 하단 01, 02 포맷팅 */}
+                <div className="index-num">{String(index + 1).padStart(2, '0')}</div>
+              </div>
+            </div>
+          ))}
+        </main>
+      </div>
+      {/* 🔥 래퍼 닫기 🔥 */}
 
-        {/* 3. 호박게임 카드 */}
-        <div className="game-card" onClick={() => navigate('/suika')}>
-          <div className="image-wrapper">
-            <img src="/images/suika-game.png" alt="호박게임 미리보기" />
-          </div>
-          <div className="card-info">
-            <h2>호박게임</h2>
-            <button className="start-btn">시작하기</button>
-          </div>
-        </div>
-
-        {/* 4. 무한쌓기 카드 */}
-        <div className="game-card" onClick={() => navigate('/stackb')}>
-          <div className="image-wrapper">
-            <img src="/images/stack-the-block.png" alt="무한쌓기 미리보기" />
-          </div>
-          <div className="card-info">
-            <h2>무한쌓기</h2>
-            <button className="start-btn">시작하기</button>
-          </div>
-        </div>
-
-        {/* 5. 풍선띄우기 카드 */}
-        <div className="game-card" onClick={() => navigate('/balloon')}>
-          <div className="image-wrapper">
-            <img src="/images/balloon-up.png" alt="풍선띄우기 미리보기" />
-          </div>
-          <div className="card-info">
-            <h2>풍선띄우기</h2>
-            <button className="start-btn">시작하기</button>
-          </div>
-        </div>
-
-        {/* 6. 라쿤서바이벌 카드 */}
-        <div className="game-card" onClick={() => navigate('/raccoon')}>
-          <div className="image-wrapper">
-            <img src="/images/raccoon-survival.png" alt="라쿤서바이벌 미리보기" />
-          </div>
-          <div className="card-info">
-            <h2>라쿤서바이벌</h2>
-            <button className="start-btn">시작하기</button>
-          </div>
-        </div>
-
-        {/* 7. 야추! 카드 */}
-        <div className="game-card" onClick={() => navigate('/yacht')}>
-          <div className="image-wrapper">
-            <img src="/images/yacht-multi.png" alt="야추! 멀티! 미리보기" />
-          </div>
-          <div className="card-info">
-            <h2>야추! 멀티!</h2>
-            <button className="start-btn">시작하기</button>
-          </div>
-        </div>
-
-        {/* 8. 다이후고 카드 */}
-        <div className="game-card" onClick={() => navigate('/daifugo')}>
-          <div className="image-wrapper">
-            <img src="/images/daifugo.png" alt="대부호 카드게임 미리보기" />
-          </div>
-          <div className="card-info">
-            <h2>대부호 카드게임</h2>
-            <button className="start-btn">시작하기</button>
-          </div>
-        </div>
-
-        {/* 9. 오목 카드 */}
-        <div className="game-card" onClick={() => navigate('/gomoku')}>
-          <div className="image-wrapper">
-            <img src="/images/gomoku.png" alt="오목 미리보기" />
-          </div>
-          <div className="card-info">
-            <h2>오목</h2>
-            <button className="start-btn">시작하기</button>
-          </div>
-        </div>
-
-        {/* 10. 슈퍼핫 카드 */}
-        <div className="game-card" onClick={() => navigate('/superhot')}>
-          <div className="image-wrapper">
-            <img src="/images/superhot.png" alt="슈퍼핫 미리보기" />
-          </div>
-          <div className="card-info">
-            <h2>슈퍼핫(PC전용)</h2>
-            <button className="start-btn">시작하기</button>
-          </div>
-        </div>
-
-      </main>
+      <footer className="vapor-footer">
+        <div className="coord">latest update 26.03.12</div>
+        <div className="warning">🔖BAEJAEHUN</div>
+      </footer>
     </div>
   );
 };
