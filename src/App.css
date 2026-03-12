@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen&display=swap');
+
 /* 1. 기본 여백 제거 및 배경색 통일 */
 html, body {
   margin: 0;
@@ -26,7 +28,7 @@ html, body {
   background: var(--bg-black);
   min-height: 100vh;
   width: 100%;
-  font-family: 'Arial Black', sans-serif;
+  font-family: 'Press Start 2P', sans-serif;
   position: relative;
   /* 모바일에서도 위아래 여백이 적절하도록 clamp 적용 */
   padding-top: clamp(20px, 4vw, 40px); 
@@ -80,7 +82,7 @@ html, body {
 
 /* 메인 네온 로고 (모바일에서는 작게, PC에서는 4rem으로 유지) */
 .main-logo {
-  font-size: clamp(2rem, 8vw, 4rem); 
+  font-size: clamp(1rem, 8vw, 3rem); 
   margin: 0;
   background: linear-gradient(to bottom, var(--neon-blue), var(--neon-pink));
   -webkit-background-clip: text;
