@@ -10,7 +10,7 @@ import YachtMulti from './yacht-multi/index.jsx';
 import Daifugo from './daifugo/index.jsx';
 import Gomoku from './gomoku/index.jsx';
 import Superhot from './superhot/superhot.jsx';
-import './App.css'; // 설정하신 CSS 파일명으로 맞춰주세요
+import './App.css'; 
 
 // 메인 로비 화면 컴포넌트
 const MainLobby = () => {
@@ -39,13 +39,12 @@ const MainLobby = () => {
       <div className="vapor-overlay"></div>
       
       <header className="vapor-header">
-        {/* GLITCH_OS 제거, MINI-GAME 텍스트 추가 */}
         <div className="header-titles" onClick={() => navigate('/')}>
           <h1 className="main-logo">MINI-GAME</h1>
         </div>
       </header>
 
-      {/* 🔥 여기에 grid-wrapper와 grid-pixel-frame을 추가하여 감싸줍니다 🔥 */}
+      {/* 테두리와 카드 리스트를 함께 묶어주는 래퍼 */}
       <div className="grid-wrapper">
         <div className="grid-pixel-frame"></div>
         
@@ -77,7 +76,6 @@ const MainLobby = () => {
           ))}
         </main>
       </div>
-      {/* 🔥 래퍼 닫기 🔥 */}
 
       <footer className="vapor-footer">
         <div className="coord">latest update 26.03.12</div>

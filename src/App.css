@@ -28,15 +28,16 @@ html, body {
   width: 100%;
   font-family: 'Arial Black', sans-serif;
   position: relative;
-  padding-top: 40px; 
+  /* 모바일에서도 위아래 여백이 적절하도록 clamp 적용 */
+  padding-top: clamp(20px, 4vw, 40px); 
   padding-bottom: 80px; 
 }
 
-/* 배경 흐르는 텍스트 */
+/* 배경 흐르는 텍스트 (화면 크기에 맞춰 폰트 크기 자동 조절) */
 .bg-scroll-text {
   position: absolute;
   top: 15%;
-  font-size: 8rem;
+  font-size: clamp(3rem, 10vw, 8rem); 
   white-space: nowrap;
   opacity: 0.05;
   font-weight: 900;
@@ -63,9 +64,9 @@ html, body {
 /* 상단 헤더 및 타이틀 */
 .vapor-header {
   display: flex;
-  justify-content: center; /* 중앙 정렬 */
+  justify-content: center;
   align-items: center;
-  padding: 20px 60px 40px 60px;
+  padding: 20px clamp(15px, 5vw, 60px) 40px clamp(15px, 5vw, 60px);
   position: relative;
   z-index: 20;
 }
@@ -77,9 +78,9 @@ html, body {
   cursor: pointer;
 }
 
-/* GLITCH_OS 대신 MINI-GAME을 메인 네온 로고로 사용 */
+/* 메인 네온 로고 (모바일에서는 작게, PC에서는 4rem으로 유지) */
 .main-logo {
-  font-size: 4rem; /* 텍스트 크기 확대 */
+  font-size: clamp(2rem, 8vw, 4rem); 
   margin: 0;
   background: linear-gradient(to bottom, var(--neon-blue), var(--neon-pink));
   -webkit-background-clip: text;
@@ -88,19 +89,43 @@ html, body {
   filter: drop-shadow(0 0 15px var(--neon-pink));
   text-transform: uppercase;
   letter-spacing: 5px;
+  text-align: center;
 }
 
-/* 비스듬한 효과 제거하여 정면을 바라보는 카드 그리드 */
+/* 🔥 테두리 래퍼 (모바일에서는 여백을 줄여 화면을 넓게 씁니다) 🔥 */
+.grid-wrapper {
+  position: relative;
+  margin: 0 clamp(15px, 5vw, 40px); /* 화면 크기에 따른 좌우 여백 자동화 */
+  padding: clamp(20px, 4vw, 40px); /* 테두리 안쪽 여백 통합 */
+  z-index: 20;
+}
+
+/* 네온 픽셀 테두리 프레임 */
+.grid-pixel-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 4px solid var(--neon-blue);
+  border-radius: 10px;
+  box-shadow: 0 0 15px var(--neon-blue);
+  pointer-events: none;
+  z-index: 15;
+}
+
+/* 🔥 반응형 카드 그리드 (화면 너비가 좁아지면 1열~2열로 자동 변환) 🔥 */
 .vapor-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 30px;
-  padding: 0 60px 60px 60px;
+  /* min(100%, 280px)를 통해 카드가 화면 밖으로 튀어나가는 것을 완벽 방지 */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: clamp(15px, 3vw, 30px);
+  padding: 0; /* 여백은 래퍼에서 처리하므로 0 유지 */
   position: relative;
   z-index: 20;
 }
 
-/* 카드 전체 디자인 */
+/* 카드 전체 디자인 (기존 Bpp 스타일 완벽 유지) */
 .vapor-card {
   background: rgba(255, 255, 255, 0.05);
   border-left: 5px ridge var(--accent);
@@ -115,7 +140,6 @@ html, body {
   flex-direction: column;
 }
 
-/* 마우스 호버 시 카드 비틀림 효과 제거, 크기만 확대 */
 .vapor-card:hover {
   transform: scale(1.05);
   background: rgba(255, 255, 255, 0.1);
@@ -123,16 +147,15 @@ html, body {
   box-shadow: 0 0 20px var(--accent);
 }
 
-/* 썸네일 이미지 영역 (고정된 영역 설정) */
+/* 썸네일 이미지 영역 (고정된 220px 대신 화면 크기에 맞춰 높이 자동 조절) */
 .vapor-image-wrapper {
   width: 100%;
-  height: 220px; 
+  height: clamp(160px, 25vw, 220px); 
   position: relative;
   overflow: hidden;
   border-bottom: 2px solid var(--accent);
 }
 
-/* 이미지는 잘린 채로 들어가도록 object-fit: cover 사용 */
 .vapor-image-wrapper img {
   width: 100%;
   height: 100%;
@@ -141,13 +164,11 @@ html, body {
   filter: grayscale(30%) contrast(120%); 
 }
 
-/* 마우스 호버 시 이미지 확대 및 선명해짐 */
 .vapor-card:hover .vapor-image-wrapper img {
   transform: scale(1.1);
   filter: grayscale(0%) contrast(100%);
 }
 
-/* 이미지 위에 덮이는 네온 색상 오버레이 */
 .image-overlay {
   position: absolute;
   inset: 0;
@@ -159,19 +180,21 @@ html, body {
 
 /* 텍스트 정보 영역 */
 .vapor-card-content {
-  padding: 24px;
+  padding: clamp(15px, 3vw, 24px);
   position: relative;
   flex-grow: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
 }
 
 .vapor-info h3 {
-  font-size: 1.4rem;
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
   text-transform: uppercase;
   margin: 0;
   letter-spacing: -1px;
+  word-break: keep-all; /* 단어가 잘리지 않게 보호 */
 }
 
 .vapor-bar {
@@ -191,12 +214,13 @@ html, body {
   background-color: transparent;
   border: 2px solid var(--accent);
   color: var(--accent);
-  padding: 10px 18px;
+  padding: clamp(8px, 1.5vw, 10px) clamp(12px, 2vw, 18px);
   border-radius: 12px;
-  font-size: 15px;
+  font-size: clamp(13px, 2vw, 15px);
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s;
+  white-space: nowrap; /* 버튼 텍스트 줄바꿈 방지 */
 }
 
 .vapor-card:hover .start-btn {
@@ -209,7 +233,7 @@ html, body {
   position: absolute;
   right: 15px;
   bottom: 15px;
-  font-size: 3.5rem;
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
   line-height: 1;
   opacity: 0.1;
   font-style: italic;
@@ -219,36 +243,34 @@ html, body {
 /* 하단 푸터 */
 .vapor-footer {
   position: fixed;
-  bottom: 15px;
+  bottom: 0;
   width: 100%;
   display: flex;
   justify-content: space-around;
-  font-size: 0.8rem;
-  letter-spacing: 5px;
+  padding: 15px 10px;
+  font-size: clamp(0.6rem, 1.5vw, 0.8rem);
+  letter-spacing: clamp(2px, 1vw, 5px);
   color: var(--neon-pink);
   z-index: 20;
   pointer-events: none;
+  background: var(--bg-black);
+  box-sizing: border-box;
 }
 
-/* 🔥============= 여기서부터 추가된 부분 =============🔥 */
-/* Bpp의 원래 디자인을 건드리지 않고 겉에만 두르는 래퍼 */
-.grid-wrapper {
-  position: relative;
-  margin: 0 40px; /* Bpp 그리드와 자연스럽게 어울리도록 양옆 여백만 설정 */
-  padding-top: 40px; /* 테두리 위쪽 여유 공간 */
-  z-index: 20;
-}
-
-/* Cpp에서 가져온 네온 픽셀 테두리 프레임 */
-.grid-pixel-frame {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border: 4px solid var(--neon-blue);
-  border-radius: 10px;
-  box-shadow: 0 0 15px var(--neon-blue);
-  pointer-events: none;
-  z-index: 15;
+/* 아주 좁은 모바일 화면일 때 카드 내용과 푸터 정렬 보정 */
+@media (max-width: 480px) {
+  .vapor-card-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .start-btn {
+    width: 100%; /* 모바일에선 터치하기 쉽게 버튼을 가로로 꽉 채움 */
+    text-align: center;
+  }
+  .vapor-footer {
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding-bottom: 10px;
+  }
 }
