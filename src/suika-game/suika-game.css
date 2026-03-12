@@ -21,9 +21,9 @@ body {
   flex-direction: column;
   align-items: center;
   height: 100vh;
-  /* 🔥 좌우 패딩을 0으로 없애서 화면 끝까지 붙게 만듭니다 */
   padding: 10px 0; 
   box-sizing: border-box;
+  color: #191f28; /* 🔥 다크모드 글씨 묻힘 방지용 기본 색상 고정 */
 }
 
 /* 상단 헤더 (제목, 점수) */
@@ -31,20 +31,20 @@ body {
   text-align: center;
   margin-bottom: 10px;
   width: 100%;
-  /* 🔥 헤더도 더 넓게 쓰도록 수정합니다 */
   max-width: 500px; 
 }
 
 .suika-header h1 {
   margin: 0;
-  font-size: 1.5rem; /* 모바일 맞춤 크기 */
-  color: #d35400;
+  font-size: 1.5rem; 
+  color: #d35400 !important; /* 🔥 App.css 침범 방지 */
 }
 
 .score-board {
   font-size: 1.2rem;
   font-weight: bold;
   background: white;
+  color: #191f28 !important; /* 🔥 점수판 글씨를 진한 회색/검정으로 고정해서 보이게 만듭니다 */
   padding: 5px 15px;
   border-radius: 20px;
   display: inline-block;
@@ -61,7 +61,7 @@ body {
   border: none;
   border-radius: 5px;
   background-color: #d35400;
-  color: white;
+  color: white !important;
   cursor: pointer;
   z-index: 100;
   font-size: 0.8rem;
@@ -73,7 +73,6 @@ body {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  /* 🔥 컨테이너 최대 크기를 늘려 요즘 폰에서도 꽉 차게 합니다 */
   max-width: 500px; 
   flex: 1;
   overflow: hidden;
@@ -83,24 +82,20 @@ body {
 .game-canvas-wrapper {
   position: relative;
   width: 100%;
-  /* 🔥 max-width: 400px; 삭제 (부모인 game-wrapper의 너비를 100% 따라갑니다) */
-  
-  /* 2:3 비율은 그대로 유지하여 게임 플레이 감각은 보존합니다 */
+  max-width: 400px; /* 🔥 PC에서 좌우로 뚱뚱하게 늘어나는 현상 방지! (모바일은 자동으로 100% 맞춰짐) */
   aspect-ratio: 2 / 3; 
-  
+  margin: 0 auto; /* PC 화면 중앙 정렬 */
   background-color: #ffeaa7;
-  /* 🔥 화면 끝에 닿으므로 테두리 둥글기를 빼거나 줄이는 것이 자연스럽습니다 */
   border-radius: 0; 
   box-shadow: 0 10px 20px rgba(0,0,0,0.2);
   overflow: hidden;
 }
 
-/* 🔥 [반응형 핵심]: Matter.js가 생성한 캔버스 엘리먼트 스타일 */
+/* Matter.js가 생성한 캔버스 엘리먼트 스타일 */
 .suika-canvas canvas {
   position: absolute;
   top: 0;
   left: 0;
-  /* 부모 컨테이너(.game-canvas-wrapper)의 크기에 무조건 맞춤 */
   width: 100% !important;
   height: 100% !important;
   display: block;
@@ -113,6 +108,7 @@ body {
   top: 10px;
   right: 10px;
   background: rgba(255, 255, 255, 0.8);
+  color: #191f28 !important; /* 🔥 Next 부분 하얀 글씨 방지 */
   padding: 5px 10px;
   border-radius: 10px;
   z-index: 10;
@@ -120,10 +116,11 @@ body {
   align-items: center;
   gap: 5px;
   font-size: 0.9rem;
+  font-weight: bold;
 }
 
 .next-fruit-indicator img {
-  width: 30px; /* 작게 조정 */
+  width: 30px; 
   height: 30px;
   object-fit: contain;
 }
@@ -131,14 +128,14 @@ body {
 /* 게임오버 라인 (데드라인) */
 .deadline {
   position: absolute;
-  top: 120px; /* JS의 DEADLINE_Y 값과 동일해야 함 */
+  top: 120px; 
   left: 0;
   width: 100%;
   height: 2px;
   background-color: #ff7675;
   border-top: 1px dashed #d63031;
   z-index: 5;
-  pointer-events: none; /* 클릭 통과 */
+  pointer-events: none; 
 }
 
 /* 게임 오버 오버레이 */
@@ -149,19 +146,18 @@ body {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.8);
-  color: white;
+  color: white !important;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 50;
-  border-radius: 10px;
 }
 
 .game-over-overlay h2 {
   font-size: 2rem;
   margin-bottom: 10px;
-  color: #ff7675;
+  color: #ff7675 !important;
 }
 
 .restart-btn {
@@ -170,7 +166,7 @@ body {
   border: none;
   border-radius: 5px;
   background-color: #d35400;
-  color: white;
+  color: white !important;
   cursor: pointer;
   margin-top: 20px;
 }
@@ -181,7 +177,7 @@ body {
   justify-content: center;
   align-items: center;
   width: 100%;
-  max-width: 400px;
+  max-width: 400px; /* 진화 가이드도 게임 화면 너비에 맞춤 */
   background-color: rgba(255, 255, 255, 0.5);
   padding: 5px;
   margin-top: 10px;
@@ -195,7 +191,6 @@ body {
 }
 
 .guide-item img {
-  /* 모바일 화면에 맞게 가이드 이미지 크기 축소 */
   width: 25px; 
   height: 25px;
   object-fit: contain;
@@ -203,7 +198,7 @@ body {
 
 .evolution-guide .arrow {
   margin: 0 2px;
-  color: #7f8c8d;
+  color: #191f28 !important; /* 진화 화살표 색상 복구 */
   font-size: 0.7rem;
 }
 

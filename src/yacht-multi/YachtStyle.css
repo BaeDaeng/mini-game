@@ -1,3 +1,114 @@
+/* src/yacht-multi/YachtStyle.css */
+html, body {
+  margin: 0; padding: 0;
+  width: 100%; height: 100%;
+  background-color: #2c3e50;
+  overflow: hidden; /* 전체 화면 스크롤 방지 */
+}
+
+.menu-container {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100dvh; /* 모바일 브라우저 주소창을 고려한 동적 높이 */
+  background-color: #2c3e50; color: white; gap: 2vh; font-family: sans-serif;
+  box-sizing: border-box; padding: 20px;
+}
+
+.box { 
+  display: flex; 
+  gap: 15px; 
+  width: 90%; /* 화면의 90%까지 넓게 사용 */
+  max-width: 600px; /* 기존 400px에서 600px로 확장 */
+  justify-content: center; 
+  align-items: stretch;
+}
+
+.main-btn { 
+  padding: 15px 30px; 
+  font-size: min(5vw, 20px); 
+  cursor: pointer; 
+  border-radius: 12px; 
+  border: none; 
+  font-weight: bold; 
+  width: 100%; 
+  max-width: 300px; 
+  color: white; /* 글자색을 흰색으로 통일 */
+  transition: transform 0.2s ease, filter 0.2s ease; /* 마우스 올렸을 때 부드러운 효과 */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3); /* 살짝 그림자 추가 */
+}
+
+.main-btn:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.main-btn.single { 
+  background-color: #2ecc71; 
+}
+
+.main-btn.multi { 
+  background-color: #e74c3c; 
+}
+
+.main-btn.multi {
+  padding: 15px 30px;
+  font-size: 18px;
+  white-space: nowrap; /* 글씨가 줄바꿈되지 않게 */
+}
+
+input { 
+  padding: 15px 20px; 
+  font-size: 24px; /* 글자 크기 대폭 확대 */
+  font-weight: bold;
+  border-radius: 8px; 
+  text-transform: uppercase; 
+  text-align: center; 
+  flex: 1; 
+  letter-spacing: 5px; /* 코드 입력 시 글자 간격을 넓혀서 보기 편하게 */
+  border: 2px solid #bdc3c7;
+}
+
+input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.game-board {
+  display: flex; flex-direction: column;
+  width: 100vw; height: 100dvh; max-width: 800px; margin: 0 auto;
+  padding: 2vh 4vw; background: #ecf0f1; color: #333; box-sizing: border-box;
+}
+
+.header { text-align: center; margin-bottom: 2vh; flex-shrink: 0; }
+.header h2 { margin: 1vh 0; font-size: min(6vw, 24px); }
+.highlight { color: #e74c3c; font-weight: bold; }
+
+.dice-area { text-align: center; margin-bottom: 2vh; flex-shrink: 0; }
+.dice-container { display: flex; justify-content: center; gap: 3vw; margin-bottom: 1.5vh; }
+.dice {
+  font-size: min(15vw, 70px); /* 화면이 작아지면 주사위도 작아짐 */
+  line-height: 1; cursor: pointer; transition: 0.2s; user-select: none; color: #2c3e50;
+}
+.dice.kept { color: #e74c3c; transform: translateY(-10px); }
+
+button {
+  padding: min(1.5vh, 10px) 10px; border-radius: 8px; cursor: pointer; border: none; background: #3498db; color: white; font-weight: bold; font-size: min(3.5vw, 15px);
+}
+button:disabled { background: #bdc3c7; cursor: not-allowed; }
+.back-btn { background: #95a5a6; margin-top: 1vh; }
+
+.score-area { display: flex; justify-content: space-between; gap: 2vw; flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 10px; }
+.score-col { flex: 1; display: flex; flex-direction: column; gap: 0.8vh; transition: filter 0.3s ease, opacity 0.3s ease; }
+.score-col h4 { text-align: center; margin: 0 0 1vh 0; font-size: min(4vw, 16px); }
+.score-col button { background: #fff; color: #333; border: 2px solid #bdc3c7; text-align: left; display: flex; justify-content: space-between;}
+
+/* 턴 활성화/비활성화 시각적 효과 (흑백 처리) */
+.active-board { filter: grayscale(0%); opacity: 1; }
+.active-board button:hover:not(:disabled) { border-color: #3498db; background: #e8f4f8; }
+.inactive-board { filter: grayscale(100%); opacity: 0.5; pointer-events: none; /* 클릭 원천 차단 */ }
+
+.pulse-text { animation: pulse 1.5s infinite; font-size: 18px; color: #f1c40f; }
+@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
 /* 💡 추가된 룰 가이드 모달 스타일 */
 .rule-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;

@@ -122,7 +122,9 @@ const StackTheBlock = () => {
   };
 
   // 블록 떨어뜨리기 (클릭 이벤트)
-  const handleDrop = () => {
+  const handleDrop = (e) => {
+    if (e && e.target.closest('button')) return;
+
     const state = gameState.current;
     if (state.gameOver || !state.movingBlock) return;
 
@@ -186,10 +188,15 @@ const StackTheBlock = () => {
 
   return (
     <div className="stack-container" onClick={handleDrop}>
-      <button className="back-btn" onClick={(e) => { e.stopPropagation(); navigate('/'); }}>
+      <button 
+        className="back-btn" 
+        style={{ zIndex: 9999 }} /* 어떤 요소보다 무조건 맨 위에 오도록 강제 설정 */
+        onPointerDown={(e) => {
+          e.stopPropagation(); // 부모로 터치 이벤트가 새어나가는 것을 완벽 차단
+          navigate('/');       // 모바일에서는 손가락이 닿는 즉시 딜레이 없이 이동!
+        }} onClick={(e) => { e.stopPropagation(); navigate('/');}}>
         ⬅️ 메인으로
-      </button>
-
+        </button>
       <div className="stack-header">
         <h1>무한 쌓기</h1>
         <div className="info-bar">

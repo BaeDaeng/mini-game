@@ -11,6 +11,8 @@
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Pretendard", sans-serif;
   color: #191f28;
+  position: relative; 
+  width: 100%;
 }
 
 .back-btn {
