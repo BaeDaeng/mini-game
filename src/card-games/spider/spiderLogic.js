@@ -32,12 +32,26 @@ export const createSpiderDeck = (difficulty) => {
     }
   }
 
-  // 셔플
+  // 1. 기본 셔플 (피셔-예이츠 알고리즘)
   for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [deck[i], deck[j]] = [deck[j], deck[i]];
   }
 
+
+  // 🔥 2. 여기에 '뭉침 방지 알고리즘' 추가 🔥
+  // 바로 다음 카드가 나와 똑같은 숫자라면, 저 멀리 있는 다른 카드와 강제로 자리를 바꿉니다.
+  for (let i = 0; i < deck.length - 1; i++) {
+    if (deck[i].rank === deck[i + 1].rank) {
+      for (let k = i + 2; k < deck.length; k++) {
+        if (deck[k].rank !== deck[i].rank) {
+          [deck[i + 1], deck[k]] = [deck[k], deck[i + 1]];
+          break;
+        }
+      }
+    }
+  }
+  
   return deck;
 };
 
