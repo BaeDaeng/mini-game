@@ -11,6 +11,7 @@ import Daifugo from './daifugo/index.jsx';
 import Gomoku from './gomoku/index.jsx';
 import Superhot from './superhot/superhot.jsx';
 import CardGamePortal from './card-games/index.jsx';
+import RhythmGame from './rhythm-game/rhythm.jsx';
 import './App.css'; 
 
 // 메인 로비 화면 컴포넌트
@@ -30,6 +31,7 @@ const MainLobby = () => {
     { path: '/gomoku', title: '오목', icon: '⚫', img: '/images/gomoku.png', color: '#aaaaaa' },
     { path: '/superhot', title: '슈퍼핫(PC)', icon: '🔥', img: '/images/superhot.png', color: '#ff4d00' },
     { path: '/cards', title: '카드 게임 모음', icon: '🃏', img: '/images/card-games.png', color: '#8e44ad' },
+    { path: '/rhythm', title: '리듬게임', icon: '🎶', img: '/images/rhythm-game.png', color: '#3d3c3d' },
   ];
 
   return (
@@ -80,7 +82,7 @@ const MainLobby = () => {
       </div>
 
       <footer className="vapor-footer">
-        <div className="coord">latest update 26.03.12</div>
+        <div className="coord">latest update 26.03.13</div>
         <div className="warning">🔖BAEJAEHUN</div>
       </footer>
     </div>
@@ -104,6 +106,7 @@ const App = () => {
         <Route path="/gomoku" element={<Gomoku />} />
         <Route path="/superhot" element={<Superhot />} />
         <Route path="/cards" element={<CardGamePortal />} />
+        <Route path="/rhythm" element={<RhythmGame />} />
       </Routes>
     </Router>
   );
