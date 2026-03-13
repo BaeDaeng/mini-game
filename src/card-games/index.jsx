@@ -31,7 +31,7 @@ export default function CardGamePortal() {
           border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold'
         }}
       >
-        ⬅️메인으로 
+        ⬅️메인으로
       </button>
 
       <h1 style={{ fontSize: '3rem', color: '#f1c40f', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
@@ -39,16 +39,16 @@ export default function CardGamePortal() {
       </h1>
       <p style={{ fontSize: '1.2rem', marginBottom: '40px' }}>즐기고 싶은 카드 게임을 선택하세요.</p>
 
-      <button className="menu-btn" style={{background: '#c0392b'}} onClick={() => setActiveGame('blackjack')}>
+      <button className="menu-btn" style={{background: '#000000'}} onClick={() => setActiveGame('blackjack')}>
         ♠️ 블랙잭 (Blackjack)
       </button>
-      <button className="menu-btn" style={{background: '#c0392b'}} onClick={() => setActiveGame('highlow')}>
+      <button className="menu-btn" style={{background: '#9c1a0b'}} onClick={() => setActiveGame('highlow')}>
         🔼 하이 & 로우 (High & Low)
       </button>
-      <button className="menu-btn" style={{background: '#c0392b'}} onClick={() => setActiveGame('holdem')}>
+      <button className="menu-btn" style={{background: '#4c4fec'}} onClick={() => setActiveGame('holdem')}>
         🤠 텍사스 홀덤 (멀티)
       </button>
-      <button className="menu-btn" style={{background: '#2f517e'}} onClick={() => setActiveGame('spider')}>
+      <button className="menu-btn" style={{background: '#117930'}} onClick={() => setActiveGame('spider')}>
         🕸️ 스파이더 카드놀이
       </button>
       <button className="menu-btn" style={{background: '#9b59b6'}} onClick={() => setActiveGame('catchthief')}>
