@@ -1,7 +1,7 @@
-// src/card-games/old-maid/oldMaidLogic.js
+// src/card-games/catch-thief/catchThiefLogic.js
 
 // 52장 + 조커 1장 = 53장 덱 생성
-export const createOldMaidDeck = () => {
+export const createCatchThiefDeck = () => {
   const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
   const ranks = ['ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king'];
   let deck = [];

@@ -1,12 +1,11 @@
-// src/card-games/catch-theif/CatchThiefGame.jsx
+// src/card-games/catch-thief/CatchThiefGame.jsx
 import React, { useState, useEffect } from 'react';
 import { doc, updateDoc, onSnapshot, deleteDoc } from "firebase/firestore"; 
 import { db } from "../../firebase";
-import { createOldMaidDeck, removePairs } from './catchThiefLogic'; // 💡 파일명 변경 반영
+import { createCatchThiefDeck, removePairs } from './catchThiefLogic'; 
 import { CARD_BACK_IMAGE } from '../utils/deck';
-import './CatchThiefStyle.css'; // 💡 파일명 변경 반영
+import './CatchThiefStyle.css'; 
 
-// 💡 훅(Hook) 의존성 경고를 피하기 위해 계산 함수를 컴포넌트 바깥으로 빼냈습니다.
 const getNextActivePlayerIdx = (currentIdx, currentPlayers, direction) => {
   let nextIdx = (currentIdx + direction) % currentPlayers.length;
   if (nextIdx < 0) nextIdx += currentPlayers.length;
@@ -21,7 +20,6 @@ const getNextActivePlayerIdx = (currentIdx, currentPlayers, direction) => {
 export default function CatchThiefGame({ roomCode, playerType, goBack }) {
   const [gameState, setGameState] = useState(null);
 
-  // 1. 방 동기화
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, "yacht_rooms", roomCode), (docSnap) => {
       if (docSnap.exists()) setGameState(docSnap.data());
@@ -30,7 +28,6 @@ export default function CatchThiefGame({ roomCode, playerType, goBack }) {
     return () => unsubscribe();
   }, [roomCode, goBack]);
 
-  // 2. 5분 폭파 타이머 (no-empty, no-unused-vars 에러 해결)
   const lastActive = gameState?.lastActive; 
   useEffect(() => {
     if (!lastActive) return;
@@ -39,7 +36,7 @@ export default function CatchThiefGame({ roomCode, playerType, goBack }) {
         try { 
           await deleteDoc(doc(db, "yacht_rooms", roomCode)); 
         } catch(error) {
-          console.error("방 삭제 오류:", error); // 💡 비어있던 catch 블록 수정
+          console.error("방 삭제 오류:", error); 
         }
       }
     }, 10000);
@@ -48,7 +45,7 @@ export default function CatchThiefGame({ roomCode, playerType, goBack }) {
 
   const amIHost = playerType === 'p1';
 
-  // 4. 카드 뽑기 로직 (CPU useEffect보다 위에 있어야 참조 가능)
+  // 카드 뽑기 로직
   const handleDrawCard = async (targetPlayerIdx, cardIndex) => {
     if (!gameState) return;
 
@@ -68,7 +65,14 @@ export default function CatchThiefGame({ roomCode, playerType, goBack }) {
     });
 
     setTimeout(async () => {
-      currentPlayer.hand = removePairs(currentPlayer.hand);
+      // 💡 1. 짝을 맞추고 난 뒤, 손패를 다시 무작위로 섞어서 상대방이 위치를 알 수 없게 만듭니다!
+      let updatedHand = removePairs(currentPlayer.hand);
+      for (let i = updatedHand.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [updatedHand[i], updatedHand[j]] = [updatedHand[j], updatedHand[i]];
+      }
+      currentPlayer.hand = updatedHand;
+
       let newRankings = [...gameState.rankings];
       let currentRankNum = newRankings.length + 1;
 
@@ -102,7 +106,6 @@ export default function CatchThiefGame({ roomCode, playerType, goBack }) {
     }, 2000);
   };
 
-  // 3. CPU 턴 자동 처리 (rules-of-hooks 에러 해결을 위해 return 위로 끌어올림)
   useEffect(() => {
     if (!gameState || gameState.phase !== 'playing') return;
     const currentPlayer = gameState.players[gameState.turnIdx];
@@ -119,10 +122,7 @@ export default function CatchThiefGame({ roomCode, playerType, goBack }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState?.turnIdx, gameState?.phase]); 
-  // 💡 노란색 경고(exhaustive-deps)를 안전하게 무시하는 주석 추가. 
-  // (handleDrawCard를 배열에 넣으면 무한 루프가 발생할 수 있으므로 제외하는 것이 맞습니다)
 
-  // 🔥 모든 useEffect가 선언된 이후에 예외 처리(return)를 해야 에러가 나지 않습니다.
   if (!gameState) return <div style={{color:'white', padding:'20px'}}>로딩 중...</div>;
 
   const isMyTurn = gameState.players[gameState.turnIdx]?.id === playerType && gameState.phase === 'playing';
@@ -130,14 +130,17 @@ export default function CatchThiefGame({ roomCode, playerType, goBack }) {
 
   // 게임 시작 로직
   const startGame = async () => {
-    let newPlayers = [...gameState.players];
-    let cpuCount = 1;
+    // 💡 2. 다시하기 시 모든 플레이어의 손패와 이전 순위를 깨끗하게 초기화합니다.
+    let newPlayers = gameState.players.map(p => ({ ...p, hand: [], rank: null }));
+    
+    // CPU가 부족하면 채워넣음 (첫 게임용)
+    let cpuCount = newPlayers.filter(p => p.isCpu).length + 1;
     while (newPlayers.length < gameState.maxPlayers) {
       newPlayers.push({ id: `cpu${cpuCount}`, name: `Cpu${cpuCount}`, isCpu: true, hand: [], rank: null });
       cpuCount++;
     }
 
-    const deck = createOldMaidDeck(); // 이 함수 이름도 catchThiefLogic.js 안에서 변경하셨다면 그에 맞게 수정해주세요!
+    const deck = createCatchThiefDeck(); 
     
     while (deck.length > 0) {
       for (let i = 0; i < newPlayers.length; i++) {
@@ -177,7 +180,7 @@ export default function CatchThiefGame({ roomCode, playerType, goBack }) {
   }
 
   return (
-    <div className="old-maid-board">
+    <div className="catch-thief-board">
       <button className="card-back-btn" onClick={goBack}>⬅️ 나가기</button>
       <h2 style={{textAlign:'center', color:'#f1c40f', margin:0}}>🃏 도둑잡기 🤡</h2>
       
@@ -203,15 +206,26 @@ export default function CatchThiefGame({ roomCode, playerType, goBack }) {
                 <div className="rank-badge">{p.rank === '꼴찌 (조커)' ? '🤡 꼴찌' : `🏆 ${p.rank}위`}</div>
               ) : (
                 <div className={`player-hand ${isMyTurn && isTarget ? 'clickable' : ''}`}>
-                  {p.hand.map((card, cIdx) => (
-                    <img 
-                      key={card.id} 
-                      src={isMe || gameState.phase === 'gameOver' || card.id === gameState.drawnCardId ? card.image : CARD_BACK_IMAGE} 
-                      alt="card"
-                      className={card.id === gameState.drawnCardId ? 'drawn-highlight' : ''}
-                      onClick={() => { if (isMyTurn && isTarget) handleDrawCard(i, cIdx); }}
-                    />
-                  ))}
+                  {p.hand.map((card, cIdx) => {
+                    const isDrawnCard = card.id === gameState.drawnCardId;
+                    const isCurrentTurnMe = gameState.players[gameState.turnIdx]?.id === playerType;
+                    
+                    const shouldShow = isMe || gameState.phase === 'gameOver' || (isDrawnCard && isCurrentTurnMe);
+
+                    return (
+                      <img 
+                        key={card.id} 
+                        src={shouldShow ? card.image : CARD_BACK_IMAGE} 
+                        alt="card"
+                        className={isDrawnCard ? 'drawn-highlight' : ''}
+                        onClick={() => { if (isMyTurn && isTarget && gameState.phase === 'playing') handleDrawCard(i, cIdx); }}
+                        style={{
+                          cursor: (isMyTurn && isTarget) ? 'pointer' : 'default',
+                          opacity: (isDrawnCard && !isCurrentTurnMe) ? 0.5 : 1
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>

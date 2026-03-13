@@ -1,5 +1,5 @@
-/* src/card-games/old-maid/OldMaidStyle.css */
-.old-maid-board {
+/* src/card-games/catch-thief/CatchThiefStyle.css */
+.catch-thief-board {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
