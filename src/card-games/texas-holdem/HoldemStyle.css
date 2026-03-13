@@ -1,0 +1,128 @@
+/* src/card-games/texas-holdem/HoldemStyle.css */
+.holdem-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background: radial-gradient(circle, #0e6655, #083b32);
+  color: #fff;
+  font-family: 'Noto Sans KR', sans-serif;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.table-center {
+  width: 90%;
+  max-width: 800px;
+  height: 250px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 10px solid #5c4033;
+  border-radius: 125px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 40px 0;
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 10px 20px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+.pot-display {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #f1c40f;
+  margin-bottom: 15px;
+  background: rgba(0,0,0,0.6);
+  padding: 5px 20px;
+  border-radius: 20px;
+}
+
+.community-cards {
+  display: flex;
+  gap: 10px;
+}
+
+.community-cards img {
+  width: 70px;
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+}
+
+.players-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.player-seat {
+  background: rgba(44, 62, 80, 0.8);
+  padding: 10px;
+  border-radius: 15px;
+  text-align: center;
+  width: 140px;
+  border: 2px solid transparent;
+  transition: 0.3s;
+}
+
+.player-seat.active-turn {
+  border-color: #f1c40f;
+  box-shadow: 0 0 15px #f1c40f;
+  transform: scale(1.05);
+}
+
+.player-seat.folded {
+  opacity: 0.5;
+}
+
+.player-seat.out {
+  background: rgba(192, 57, 43, 0.8);
+}
+
+.player-cards {
+  display: flex;
+  justify-content: center;
+  gap: -20px;
+  margin-top: 5px;
+}
+
+.player-cards img {
+  width: 50px;
+  margin: 0 -10px; /* 겹치기 효과 */
+}
+
+.action-panel {
+  position: fixed;
+  bottom: 20px;
+  display: flex;
+  gap: 15px;
+  background: rgba(0,0,0,0.8);
+  padding: 15px;
+  border-radius: 20px;
+}
+
+.holdem-btn {
+  padding: 12px 20px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+}
+.btn-fold { background: #e74c3c; }
+.btn-call { background: #3498db; }
+.btn-raise { background: #27ae60; }
+.btn-disabled { background: #7f8c8d; cursor: not-allowed; }
+
+.dealer-button {
+  background: #ecf0f1;
+  color: #333;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: bold;
+}

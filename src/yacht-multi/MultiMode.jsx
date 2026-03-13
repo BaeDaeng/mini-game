@@ -1,7 +1,7 @@
 // src/yacht-multi/MultiMode.jsx
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc, getDoc, updateDoc, onSnapshot, deleteDoc } from "firebase/firestore";
-import { db } from "./firebase";
+import { db } from "../firebase";
 import { calculateScore, getInitialScores } from './yachtRules';
 
 const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5분 (밀리초 단위)

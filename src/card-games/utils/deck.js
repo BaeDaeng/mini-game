@@ -31,4 +31,4 @@ export const shuffleDeck = (deck) => {
 
 // 카드 뒷면 이미지 경로
 export const CARD_BACK_IMAGE = '/cards/back_blue_basic_white.png';
-export const JOCKER_IMAGE = '/cards/joker_white.png';
+export const JOKER_IMAGE = '/cards/joker_white.png';
