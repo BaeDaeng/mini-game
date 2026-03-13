@@ -5,6 +5,7 @@ import Blackjack from './blackjack/Blackjack';
 import HighLow from './high-low/HighLow';
 import HoldemEntry from './texas-holdem/index';
 import Spider from './spider/Spider';
+import CatchThief from './catch-thief/index';
 import './CardGamesStyle.css';
 
 export default function CardGamePortal() {
@@ -18,6 +19,7 @@ export default function CardGamePortal() {
   if (activeGame === 'highlow') return <HighLow goBack={goToMenu} />;
   if (activeGame === 'holdem') return <HoldemEntry goBack={goToMenu} />;
   if (activeGame === 'spider') return <Spider goBack={goToMenu} />;
+  if (activeGame === 'catchthief') return <CatchThief goBack={goToMenu} />;
 
   return (
     <div className="card-menu-container">
@@ -37,10 +39,10 @@ export default function CardGamePortal() {
       </h1>
       <p style={{ fontSize: '1.2rem', marginBottom: '40px' }}>즐기고 싶은 카드 게임을 선택하세요.</p>
 
-      <button className="menu-btn" onClick={() => setActiveGame('blackjack')}>
+      <button className="menu-btn" style={{background: '#c0392b'}} onClick={() => setActiveGame('blackjack')}>
         ♠️ 블랙잭 (Blackjack)
       </button>
-      <button className="menu-btn" onClick={() => setActiveGame('highlow')}>
+      <button className="menu-btn" style={{background: '#c0392b'}} onClick={() => setActiveGame('highlow')}>
         🔼 하이 & 로우 (High & Low)
       </button>
       <button className="menu-btn" style={{background: '#c0392b'}} onClick={() => setActiveGame('holdem')}>
@@ -48,6 +50,9 @@ export default function CardGamePortal() {
       </button>
       <button className="menu-btn" style={{background: '#2f517e'}} onClick={() => setActiveGame('spider')}>
         🕸️ 스파이더 카드놀이
+      </button>
+      <button className="menu-btn" style={{background: '#9b59b6'}} onClick={() => setActiveGame('catchthief')}>
+          🃏 도둑잡기 (멀티+CPU)
       </button>
     </div>
   );
