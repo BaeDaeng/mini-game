@@ -5,51 +5,83 @@ import { CARD_BACK_IMAGE } from '../utils/deck';
 import './SpiderStyle.css';
 
 export default function Spider({ goBack }) {
-  const [difficulty, setDifficulty] = useState(0); // 0: 메뉴, 1: 초급, 2: 중급, 4: 상급
-  const [tableau, setTableau] = useState(Array(10).fill([]));
+  const [difficulty, setDifficulty] = useState(0); 
+  const [tableau, setTableau] = useState(Array(10).fill(null).map(() => []));
   const [stock, setStock] = useState([]);
   const [completedSets, setCompletedSets] = useState(0);
   
   const [score, setScore] = useState(500);
   const [moves, setMoves] = useState(0);
   
-  const [selected, setSelected] = useState(null); // { colIdx, rowIdx }
+  const [selected, setSelected] = useState(null); 
+  
+  // 💡 실행 취소를 위한 히스토리 (과거 상태 저장) 상태 추가
+  const [history, setHistory] = useState([]);
 
-  // 💡 게임 시작 (카드 나누기)
+  // 💡 현재 상태를 히스토리에 백업하는 함수 (조작이 일어나기 직전에 호출됨)
+  const saveState = () => {
+    setHistory(prev => [...prev, {
+      // 깊은 복사(Deep Copy)를 통해 참조 끊기 (과거 상태 오염 완벽 방지)
+      tableau: JSON.parse(JSON.stringify(tableau)),
+      stock: JSON.parse(JSON.stringify(stock)),
+      completedSets,
+      score, // 당시의 점수 백업
+      moves  // 당시의 이동 횟수 백업
+    }]);
+  };
+
+  // 💡 실행 취소 기능 동작
+  const handleUndo = () => {
+    if (history.length === 0) return;
+    
+    // 가장 최근의 과거 상태 꺼내기
+    const lastState = history[history.length - 1];
+    setHistory(prev => prev.slice(0, -1)); // 꺼낸 히스토리는 배열에서 삭제
+    
+    // 테이블 및 덱 상태 복구
+    setTableau(lastState.tableau);
+    setStock(lastState.stock);
+    setCompletedSets(lastState.completedSets);
+    
+    // 💡 규칙: 실행 취소도 1번의 조작이므로 과거 점수에서 -1점, 과거 이동 횟수에서 +1회 처리
+    setMoves(lastState.moves + 1);
+    setScore(lastState.score - 1);
+    setSelected(null);
+  };
+
+  // 게임 시작 (카드 나누기)
   const initGame = (diff) => {
     const deck = createSpiderDeck(diff);
     let newTableau = Array(10).fill(null).map(() => []);
     
-    // 처음에 54장 분배 (1~4열은 6장, 5~10열은 5장)
     for (let i = 0; i < 10; i++) {
       const cardCount = i < 4 ? 6 : 5;
       for (let j = 0; j < cardCount; j++) {
         const card = deck.pop();
-        if (j === cardCount - 1) card.isFaceUp = true; // 맨 위 카드만 앞면
+        if (j === cardCount - 1) card.isFaceUp = true; 
         newTableau[i].push(card);
       }
     }
 
     setTableau(newTableau);
-    setStock(deck); // 남은 50장
+    setStock(deck); 
     setCompletedSets(0);
     setScore(500);
     setMoves(0);
     setSelected(null);
+    setHistory([]); // 💡 게임 다시 시작 시 히스토리도 초기화
     setDifficulty(diff);
   };
 
-  // 💡 세트 완성 체크 (K~A)
+  // 세트 완성 체크 (K~A)
   const processCompletion = (currentTableau) => {
     let newTableau = [...currentTableau];
     let setsFormed = 0;
 
     for (let i = 0; i < 10; i++) {
       while (checkForCompletion(newTableau[i])) {
-        // 끝에서 13장 제거
         newTableau[i] = newTableau[i].slice(0, -13);
         setsFormed++;
-        // 그 아래 있던 카드가 있다면 뒤집어줌
         if (newTableau[i].length > 0) {
           newTableau[i][newTableau[i].length - 1].isFaceUp = true;
         }
@@ -63,35 +95,28 @@ export default function Spider({ goBack }) {
     return newTableau;
   };
 
-  // 💡 카드 클릭 핸들러 (두 번 클릭으로 이동)
+  // 카드 클릭 핸들러
   const handleCardClick = (colIdx, rowIdx) => {
     const col = tableau[colIdx];
     const card = col[rowIdx];
     if (!card.isFaceUp) return;
 
-    // 이미 선택된 카드가 있을 경우 -> 이동 시도
     if (selected) {
-      // 1. 같은 카드 클릭 시 선택 취소
       if (selected.colIdx === colIdx && selected.rowIdx === rowIdx) {
         setSelected(null);
         return;
       }
 
-      // 2. 다른 열로 이동 시도
       const sourceCol = tableau[selected.colIdx];
       const movingCards = sourceCol.slice(selected.rowIdx);
       const targetTopCard = col[col.length - 1];
 
-      // 타겟 카드가 움직이려는 카드보다 1 높은 숫자여야 함
       if (RANK_VALUES[targetTopCard.rank] === RANK_VALUES[movingCards[0].rank] + 1) {
         moveCards(selected.colIdx, selected.rowIdx, colIdx);
       } else {
-        // 이동 불가능하면 새로 클릭한 카드를 선택 상태로 변경
         checkAndSelect(colIdx, rowIdx, col);
       }
-    } 
-    // 선택된 카드가 없을 경우 -> 선택 시도
-    else {
+    } else {
       checkAndSelect(colIdx, rowIdx, col);
     }
   };
@@ -113,37 +138,34 @@ export default function Spider({ goBack }) {
 
   // 실제 카드 이동 처리
   const moveCards = (fromColIdx, fromRowIdx, toColIdx) => {
+    saveState(); // 💡 카드 이동 직전에 현재 상태를 백업합니다.
+
     let newTableau = [...tableau];
     const movingCards = newTableau[fromColIdx].slice(fromRowIdx);
     
-    // 타겟 열에 추가
     newTableau[toColIdx] = [...newTableau[toColIdx], ...movingCards];
-    // 소스 열에서 제거
     newTableau[fromColIdx] = newTableau[fromColIdx].slice(0, fromRowIdx);
     
-    // 소스 열의 맨 위 카드가 뒷면이면 앞면으로 뒤집기
     if (newTableau[fromColIdx].length > 0) {
       newTableau[fromColIdx][newTableau[fromColIdx].length - 1].isFaceUp = true;
     }
 
-    // 이동 처리 및 점수 차감 (-1점)
     setMoves(prev => prev + 1);
     setScore(prev => prev - 1);
     setSelected(null);
-
-    // 이동 후 세트가 완성되었는지 확인
     setTableau(processCompletion(newTableau));
   };
 
-  // 💡 하단 덱 클릭 시 10장씩 분배
+  // 하단 덱 클릭 시 분배
   const dealCards = () => {
     if (stock.length === 0) return;
 
-    // 빈 열이 하나라도 있으면 분배 불가 룰 적용
     if (tableau.some(col => col.length === 0)) {
       alert("빈 열에는 적어도 1장 이상의 카드가 있어야 새 카드를 돌릴 수 있습니다.");
       return;
     }
+
+    saveState(); // 💡 카드 배분 직전에 현재 상태를 백업합니다.
 
     let newTableau = [...tableau];
     let newStock = [...stock];
@@ -160,10 +182,10 @@ export default function Spider({ goBack }) {
     setMoves(prev => prev + 1);
     setScore(prev => prev - 1);
     setSelected(null);
-    setTableau(processCompletion(newTableau)); // 돌린 직후 우연히 세트가 맞았을 수도 있음
+    setTableau(processCompletion(newTableau)); 
   };
 
-  // --- 렌더링 영역 ---
+  // --- 렌더링 ---
 
   if (difficulty === 0) {
     return (
@@ -181,7 +203,22 @@ export default function Spider({ goBack }) {
   return (
     <div className="spider-board">
       <div className="spider-header">
-        <button className="card-back-btn" style={{position: 'static'}} onClick={() => setDifficulty(0)}>⬅️ 포기</button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="card-back-btn" style={{position: 'static'}} onClick={() => setDifficulty(0)}>⬅️ 포기</button>
+          
+          {/* 💡 실행 취소 버튼 UI */}
+          <button 
+            onClick={handleUndo} 
+            disabled={history.length === 0}
+            style={{
+              padding: '8px 12px', background: history.length === 0 ? '#7f8c8d' : '#3498db', 
+              color: 'white', border: 'none', borderRadius: '8px', cursor: history.length === 0 ? 'not-allowed' : 'pointer', fontWeight: 'bold'
+            }}
+          >
+            ↩️ 실행 취소
+          </button>
+        </div>
+        
         <div className="spider-stats">
           <span>이동: {moves}</span>
           <span style={{ color: '#f1c40f' }}>점수: {score}</span>
@@ -190,15 +227,9 @@ export default function Spider({ goBack }) {
 
       <div className="tableau-area">
         {tableau.map((col, colIdx) => (
-          <div 
-            key={colIdx} 
-            className="tableau-col" 
-            onClick={() => handleEmptyColClick(colIdx)}
-          >
+          <div key={colIdx} className="tableau-col" onClick={() => handleEmptyColClick(colIdx)}>
             {col.map((card, rowIdx) => {
               const isSelected = selected && selected.colIdx === colIdx && rowIdx >= selected.rowIdx;
-              
-              // 뒷면일 경우 카드 간격을 좁게, 앞면일 경우 넓게 설정
               const topOffset = col.slice(0, rowIdx).reduce((acc, curr) => acc + (curr.isFaceUp ? 25 : 10), 0);
 
               return (
@@ -234,7 +265,6 @@ export default function Spider({ goBack }) {
         </div>
       </div>
 
-      {/* 🎇 승리 시 불꽃놀이 오버레이 🎇 */}
       {completedSets === 8 && (
         <div className="victory-overlay">
           <div className="firework"></div>
