@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LocalMode from './LocalMode';
 import MultiMode from './MultiMode';
+import CpuMode from './CpuMode';
 import './GomokuStyle.css';
 
 export default function GomokuEntry() {
@@ -11,6 +12,7 @@ export default function GomokuEntry() {
 
   if (mode === 'local') return <LocalMode goBack={() => setMode('menu')} />;
   if (mode === 'multi') return <MultiMode goBack={() => setMode('menu')} />;
+  if (mode === 'cpu') return <CpuMode goBack={() => setMode('menu')} />; // CPU 모드 연결
 
   return (
     <div className="menu-container" style={{ position: 'relative' }}>
@@ -26,6 +28,10 @@ export default function GomokuEntry() {
 
       <h1 style={{ fontSize: '3rem', marginBottom: '10px' }}>⚫ 오목 ⚪</h1>
       <p style={{ color: '#bdc3c7', marginBottom: '30px' }}>5개의 돌을 먼저 연결하세요!</p>
+
+      <button className="main-btn single" onClick={() => setMode('cpu')} style={{ backgroundColor: '#e67e22' }}>
+        🖥️ CPU 대전
+      </button>
 
       <button className="main-btn local" onClick={() => setMode('local')} style={{ backgroundColor: '#f39c12' }}>
         로컬 플레이 (1기기 2인용)
