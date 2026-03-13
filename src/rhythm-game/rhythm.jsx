@@ -36,7 +36,6 @@ export default function App() {
   
   const feedbackRef = useRef({ text: '', time: 0 });
 
-  // ⭐️ Warning 3 해결: useCallback으로 함수를 감싸서 리액트의 경고를 없앱니다.
   const showFeedback = useCallback((text) => {
     feedbackRef.current = { text, time: Date.now() }; 
   }, []);
@@ -55,6 +54,53 @@ export default function App() {
     showFeedback('Miss!');
   }, [showFeedback]);
 
+  // ⭐️ 통합 입력 시작 처리 (키보드/마우스/터치 공용)
+  const handleInputStart = useCallback((lane) => {
+    if (gameState !== 'playing' || lane === -1) return;
+
+    keysPressedRef.current[lane] = true;
+
+    if (drumBufferRef.current && audioCtxRef.current) {
+      const drumSource = audioCtxRef.current.createBufferSource();
+      drumSource.buffer = drumBufferRef.current;
+      drumSource.connect(audioCtxRef.current.destination);
+      drumSource.start();
+    }
+
+    const currentTime = audioCtxRef.current.currentTime - startTimeRef.current;
+    const targetNote = notesRef.current.find(
+      (n) => !n.hit && !n.missed && n.lane === lane && Math.abs(n.time - currentTime) <= GOOD_TOLERANCE
+    );
+
+    if (targetNote) {
+      if (targetNote.type === 'short') {
+        targetNote.hit = true;
+        handlePerfect(); 
+      } else if (targetNote.type === 'long') {
+        targetNote.holding = true;
+      }
+    }
+  }, [gameState, handlePerfect]);
+
+  // ⭐️ 통합 입력 종료 처리 (키보드/마우스/터치 공용)
+  const handleInputEnd = useCallback((lane) => {
+    if (gameState !== 'playing' || lane === -1) return;
+
+    keysPressedRef.current[lane] = false;
+
+    const currentTime = audioCtxRef.current.currentTime - startTimeRef.current;
+    const heldNote = notesRef.current.find((n) => n.holding && n.lane === lane);
+    
+    if (heldNote) {
+      heldNote.holding = false;
+      if (currentTime < heldNote.endTime - GOOD_TOLERANCE) {
+        heldNote.missed = true; handleMiss(); 
+      } else {
+        heldNote.hit = true; handlePerfect(50); 
+      }
+    }
+  }, [gameState, handleMiss, handlePerfect]);
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) setAudioFile(file);
@@ -66,9 +112,8 @@ export default function App() {
       const blob = await res.blob();
       generateBeatMapAndPlay(blob); 
     } catch (e) {
-      // ⭐️ Error 1 해결: e 변수를 사용하여 에러 로그를 남깁니다.
-      console.error("샘플 파일을 불러오지 못했습니다:", e);
-      alert("으흑흑.mp3 파일을 불러올 수 없습니다. 파일 위치를 확인해주세요!");
+      console.error("샘플 로드 실패:", e);
+      alert("파일을 불러올 수 없습니다.");
     }
   };
 
@@ -84,9 +129,7 @@ export default function App() {
         const drumRes = await fetch(drumMp3);
         const drumArrayBuffer = await drumRes.arrayBuffer();
         drumBufferRef.current = await audioCtx.decodeAudioData(drumArrayBuffer);
-      } catch (e) {
-        console.error("drum.mp3 로드 실패:", e);
-      }
+      } catch (e) { console.error(e); }
     }
 
     const arrayBuffer = await targetFile.arrayBuffer();
@@ -101,22 +144,18 @@ export default function App() {
     for (let i = 0; i < channelData.length; i++) {
       if (Math.abs(channelData[i]) > threshold) {
         const time = i / audioBuffer.sampleRate;
-        
         if (time - lastNoteTime > minInterval) {
           // eslint-disable-next-line react-hooks/purity
           const isLong = Math.random() < 0.2;
           // eslint-disable-next-line react-hooks/purity
           const duration = isLong ? 0.3 + Math.random() * 0.5 : 0;
-
           generatedNotes.push({
             type: isLong ? 'long' : 'short',
             time: time,
             endTime: time + duration,
             // eslint-disable-next-line react-hooks/purity
             lane: Math.floor(Math.random() * 4),
-            hit: false,
-            missed: false,
-            holding: false,
+            hit: false, missed: false, holding: false,
           });
           lastNoteTime = time + duration;
         }
@@ -124,17 +163,12 @@ export default function App() {
     }
 
     notesRef.current = generatedNotes;
-    
-    scoreRef.current = 0;
-    comboRef.current = 0;
-    maxComboRef.current = 0;
-    perfectCountRef.current = 0;
-    missCountRef.current = 0;
+    scoreRef.current = 0; comboRef.current = 0; maxComboRef.current = 0;
+    perfectCountRef.current = 0; missCountRef.current = 0;
 
     const source = audioCtx.createBufferSource();
     source.buffer = audioBuffer;
     source.connect(audioCtx.destination);
-    
     source.onended = () => {
       setGameState(prev => prev === 'playing' ? 'result' : prev);
       if (reqRef.current) cancelAnimationFrame(reqRef.current);
@@ -147,14 +181,21 @@ export default function App() {
     reqRef.current = requestAnimationFrame(gameLoop);
   };
 
+  // 마우스/터치 좌표 계산 함수
+  const getLaneFromPointer = (clientX) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return -1;
+    const rect = canvas.getBoundingClientRect();
+    const x = (clientX - rect.left) * (CANVAS_WIDTH / rect.width);
+    return Math.floor(x / LANE_WIDTH);
+  };
+
   const drawEmbossedRect = (ctx, x, y, width, height, baseColor) => {
     ctx.fillStyle = baseColor;
     ctx.fillRect(x, y, width, height);
-
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     ctx.fillRect(x, y, width, 5);
     ctx.fillRect(x, y, 5, height);
-
     ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
     ctx.fillRect(x, y + height - 5, width, 5);
     ctx.fillRect(x + width - 5, y, 5, height);
@@ -167,8 +208,7 @@ export default function App() {
     const currentTime = audioCtxRef.current.currentTime - startTimeRef.current;
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     
     for (let i = 0; i < 4; i++) {
       if (keysPressedRef.current[i]) {
@@ -176,25 +216,19 @@ export default function App() {
         gradient.addColorStop(0, 'rgba(0, 229, 255, 0)');
         gradient.addColorStop(0.7, 'rgba(0, 229, 255, 0.5)');
         gradient.addColorStop(1, 'rgba(0, 229, 255, 0)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(i * LANE_WIDTH, 0, LANE_WIDTH, CANVAS_HEIGHT);
+        ctx.fillStyle = gradient; ctx.fillRect(i * LANE_WIDTH, 0, LANE_WIDTH, CANVAS_HEIGHT);
       }
     }
 
-    ctx.strokeStyle = '#444';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#444'; ctx.lineWidth = 2;
     for (let i = 1; i < 4; i++) {
       ctx.beginPath(); ctx.moveTo(i * LANE_WIDTH, 0); ctx.lineTo(i * LANE_WIDTH, CANVAS_HEIGHT); ctx.stroke();
     }
-
-    ctx.fillStyle = 'rgba(255, 0, 85, 0.8)';
-    ctx.fillRect(0, HIT_Y - 2.5, CANVAS_WIDTH, 5);
+    ctx.fillStyle = 'rgba(255, 0, 85, 0.8)'; ctx.fillRect(0, HIT_Y - 2.5, CANVAS_WIDTH, 5);
 
     notesRef.current.forEach((note) => {
       if (note.hit) return;
-
       const bottomY = HIT_Y - (note.time - currentTime) * SPEED;
-      
       if (note.type === 'short') {
         if (bottomY > -50 && bottomY < CANVAS_HEIGHT + 50) {
           drawEmbossedRect(ctx, note.lane * LANE_WIDTH + 10, bottomY - 15, LANE_WIDTH - 20, 30, '#00e5ff');
@@ -202,24 +236,16 @@ export default function App() {
         if (!note.missed && currentTime > note.time + GOOD_TOLERANCE) {
           note.missed = true; handleMiss(); 
         }
-      } 
-      else if (note.type === 'long') {
+      } else {
         let topY = HIT_Y - (note.endTime - currentTime) * SPEED;
         let currentBottomY = note.holding ? HIT_Y : bottomY;
-        let height = currentBottomY - topY;
-
         if (currentBottomY > -50 && topY < CANVAS_HEIGHT + 50) {
-          drawEmbossedRect(ctx, note.lane * LANE_WIDTH + 15, topY, LANE_WIDTH - 30, height, note.holding ? '#ffea00' : '#b200ff');
+          drawEmbossedRect(ctx, note.lane * LANE_WIDTH + 15, topY, LANE_WIDTH - 30, currentBottomY - topY, note.holding ? '#ffea00' : '#b200ff');
         }
-
         if (note.holding) {
           scoreRef.current += 1; 
-          if (currentTime >= note.endTime) {
-            note.hit = true; note.holding = false;
-            handlePerfect(); 
-          }
+          if (currentTime >= note.endTime) { note.hit = true; note.holding = false; handlePerfect(); }
         }
-
         if (!note.missed && !note.holding && currentTime > note.time + GOOD_TOLERANCE) {
           note.missed = true; handleMiss(); 
         }
@@ -231,160 +257,49 @@ export default function App() {
     ctx.fillStyle = '#ffea00'; ctx.font = '20px sans-serif';
     ctx.fillText(`Combo: ${comboRef.current}`, 20, 70);
 
-    const { text, time } = feedbackRef.current;
+    const f = feedbackRef.current;
     // eslint-disable-next-line react-hooks/purity
-    if (Date.now() - time < 500) {
-      ctx.fillStyle = text === 'Miss!' ? '#ff0055' : '#00e5ff';
+    if (Date.now() - f.time < 500) {
+      ctx.fillStyle = f.text === 'Miss!' ? '#ff0055' : '#00e5ff';
       ctx.font = 'bold 48px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(text, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+      ctx.fillText(f.text, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
       ctx.textAlign = 'left';
     }
-
     reqRef.current = requestAnimationFrame(gameLoop);
   };
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (gameState !== 'playing' || e.repeat) return;
-      const lane = KEYS.indexOf(e.key.toLowerCase());
-      if (lane === -1) return;
-
-      keysPressedRef.current[lane] = true;
-
-      if (drumBufferRef.current && audioCtxRef.current) {
-        const drumSource = audioCtxRef.current.createBufferSource();
-        drumSource.buffer = drumBufferRef.current;
-        drumSource.connect(audioCtxRef.current.destination);
-        drumSource.start();
-      }
-
-      const currentTime = audioCtxRef.current.currentTime - startTimeRef.current;
-
-      const targetNote = notesRef.current.find(
-        (n) => !n.hit && !n.missed && n.lane === lane && Math.abs(n.time - currentTime) <= GOOD_TOLERANCE
-      );
-
-      if (targetNote) {
-        if (targetNote.type === 'short') {
-          targetNote.hit = true;
-          handlePerfect(); 
-        } else if (targetNote.type === 'long') {
-          targetNote.holding = true;
-        }
-      }
-    };
-
-    const handleKeyUp = (e) => {
-      if (gameState !== 'playing') return;
-      const lane = KEYS.indexOf(e.key.toLowerCase());
-      if (lane === -1) return;
-
-      keysPressedRef.current[lane] = false;
-
-      const currentTime = audioCtxRef.current.currentTime - startTimeRef.current;
-      const heldNote = notesRef.current.find((n) => n.holding && n.lane === lane);
-      
-      if (heldNote) {
-        heldNote.holding = false;
-        if (currentTime < heldNote.endTime - GOOD_TOLERANCE) {
-          heldNote.missed = true; handleMiss(); 
-        } else {
-          heldNote.hit = true; handlePerfect(50); 
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  // ⭐️ Warning 3 해결: 의존성 배열에 리액트가 요구한 함수들을 모두 넣었습니다.
-  }, [gameState, handleMiss, handlePerfect]); 
+    const kDown = (e) => { if(!e.repeat) handleInputStart(KEYS.indexOf(e.key.toLowerCase())); };
+    const kUp = (e) => handleInputEnd(KEYS.indexOf(e.key.toLowerCase()));
+    
+    window.addEventListener('keydown', kDown);
+    window.addEventListener('keyup', kUp);
+    return () => { window.removeEventListener('keydown', kDown); window.removeEventListener('keyup', kUp); };
+  }, [handleInputStart, handleInputEnd]);
 
   useEffect(() => {
     return () => {
       if (reqRef.current) cancelAnimationFrame(reqRef.current);
-      if (sourceRef.current) {
-        try { 
-          sourceRef.current.stop(); 
-          sourceRef.current.disconnect(); 
-        } catch {
-          // ⭐️ Error 2 해결: 빈 블록 에러를 막기 위한 주석 삽입
-          /* 무시되는 에러 */
-        }
-      }
-      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
-        audioCtxRef.current.close();
-      }
+      if (sourceRef.current) { try { sourceRef.current.stop(); } catch(e) {console.debug("Audio stop ignored", e);} }
+      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') audioCtxRef.current.close();
     };
   }, []);
 
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-      backgroundColor: '#08080c', backgroundImage: 'radial-gradient(circle at center, #1a1a2e 0%, #08080c 100%)',
-      display: 'flex', justifyContent: 'center', alignItems: 'center',
-      zIndex: 99999, margin: 0, padding: 0, overflow: 'hidden',
-      fontFamily: 'sans-serif'
+      backgroundColor: '#08080c', display: 'flex', justifyContent: 'center', alignItems: 'center',
+      zIndex: 99999, overflow: 'hidden', fontFamily: 'sans-serif'
     }}>
-      
-      <button 
-        onClick={() => window.location.href = '/'}
-        style={{
-          position: 'absolute', top: '20px', left: '20px', zIndex: 100,
-          padding: '10px 20px', backgroundColor: '#222', color: '#fff', 
-          border: '1px solid #444', borderRadius: '8px', cursor: 'pointer',
-          fontWeight: 'bold', transition: '0.2s'
-        }}
-        onMouseOver={(e) => e.target.style.backgroundColor = '#444'}
-        onMouseOut={(e) => e.target.style.backgroundColor = '#222'}
-      >
-        ← 메인으로
-      </button>
-
-      <h2 style={{
-        position: 'absolute', top: '30px', margin: 0,
-        color: '#00e5ff', fontSize: '2.5rem', fontWeight: 900,
-        textShadow: '0 0 10px #00e5ff, 0 0 20px #00e5ff', zIndex: 10, letterSpacing: '4px'
-      }}>
-        NEON BEAT
-      </h2>
+      <button onClick={() => window.location.href = '/'} style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 100, padding: '10px 20px', backgroundColor: '#222', color: '#fff', borderRadius: '8px', cursor: 'pointer' }}>← 메인</button>
+      <h2 style={{ position: 'absolute', top: '30px', color: '#00e5ff', fontSize: '2.5rem', fontWeight: 900, textShadow: '0 0 10px #00e5ff' }}>NEON BEAT</h2>
 
       {gameState === 'menu' && (
-        <div style={{
-          position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center',
-          gap: '20px', padding: '40px', background: 'rgba(255, 255, 255, 0.05)',
-          border: '1px solid rgba(0, 229, 255, 0.3)', borderRadius: '20px', zIndex: 10
-        }}>
-          <input type="file" accept="audio/mp3, audio/wav" onChange={handleFileUpload} style={{ color: '#fff' }} />
-          
-          <button 
-            onClick={() => generateBeatMapAndPlay()} disabled={!audioFile}
-            style={{
-              padding: '15px 40px', fontSize: '1.2rem', fontWeight: 'bold', cursor: 'pointer',
-              backgroundColor: '#00e5ff', border: 'none', borderRadius: '10px',
-              boxShadow: '0 0 20px rgba(0, 229, 255, 0.6)'
-            }}
-          >
-            Start Game
-          </button>
-
-          <button
-            onClick={playSample}
-            style={{
-              padding: '8px 20px', fontSize: '0.9rem', cursor: 'pointer',
-              backgroundColor: '#444', color: '#ccc', border: '1px solid #666', 
-              borderRadius: '5px', marginTop: '-5px', transition: 'all 0.3s'
-            }}
-            onMouseOver={(e) => { e.target.style.backgroundColor = '#555'; e.target.style.color = '#fff'; }}
-            onMouseOut={(e) => { e.target.style.backgroundColor = '#444'; e.target.style.color = '#ccc'; }}
-          >
-            샘플 플레이 (으흑흑.mp3)
-          </button>
-
-          <p style={{ color: '#aaa', margin: 0, marginTop: '10px' }}>조작키: <b style={{ color: '#ffea00' }}>A, S, ;, '</b></p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', padding: '40px', background: 'rgba(255,255,255,0.05)', borderRadius: '20px' }}>
+          <input type="file" accept="audio/*" onChange={handleFileUpload} style={{ color: '#fff' }} />
+          <button onClick={() => generateBeatMapAndPlay()} disabled={!audioFile} style={{ padding: '15px 40px', fontSize: '1.2rem', fontWeight: 'bold', backgroundColor: '#00e5ff', borderRadius: '10px' }}>Start Game</button>
+          <button onClick={playSample} style={{ padding: '8px 20px', backgroundColor: '#444', color: '#ccc', borderRadius: '5px' }}>샘플 플레이</button>
+          <p style={{ color: '#aaa' }}>조작: <b style={{ color: '#ffea00' }}>A, S, ;, '</b> 또는 <b style={{ color: '#ffea00' }}>화면 터치</b></p>
         </div>
       )}
 
@@ -392,42 +307,37 @@ export default function App() {
         ref={canvasRef} 
         width={CANVAS_WIDTH} 
         height={CANVAS_HEIGHT} 
+        // ⭐️ 마우스/터치 이벤트 추가
+        onMouseDown={(e) => handleInputStart(getLaneFromPointer(e.clientX))}
+        onMouseUp={(e) => handleInputEnd(getLaneFromPointer(e.clientX))}
+        onMouseLeave={(e) => handleInputEnd(getLaneFromPointer(e.clientX))}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          handleInputStart(getLaneFromPointer(e.touches[0].clientX));
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          // touchEnd는 touches가 비어있을 수 있어 changedTouches 사용
+          handleInputEnd(getLaneFromPointer(e.changedTouches[0].clientX));
+        }}
         style={{ 
           display: gameState === 'playing' ? 'block' : 'none',
           width: '100%', maxWidth: '400px', maxHeight: '75vh', aspectRatio: '4 / 6',
           border: '2px solid rgba(255, 255, 255, 0.1)', borderRadius: '15px',
-          boxShadow: '0 0 40px rgba(0, 229, 255, 0.2)', objectFit: 'contain'
+          boxShadow: '0 0 40px rgba(0, 229, 255, 0.2)', cursor: 'crosshair', touchAction: 'none'
         }} 
       />
 
       {gameState === 'result' && (
-        <div style={{
-          position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center',
-          gap: '20px', padding: '50px', background: 'rgba(10, 10, 20, 0.9)',
-          border: '3px solid #00e5ff', borderRadius: '20px', zIndex: 20,
-          boxShadow: '0 0 50px rgba(0, 229, 255, 0.5)'
-        }}>
-          <h2 style={{ fontSize: '3rem', color: '#ffea00', margin: '0 0 20px 0', textShadow: '0 0 20px #ffea00' }}>
-            TRACK CLEARED!
-          </h2>
-          
-          <div style={{ fontSize: '1.8rem', color: '#fff', textAlign: 'left', lineHeight: '2' }}>
-            <div>🏆 Score: <span style={{ color: '#00e5ff', fontWeight: 'bold' }}>{scoreRef.current}</span></div>
-            <div>🔥 Max Combo: <span style={{ color: '#ffea00', fontWeight: 'bold' }}>{maxComboRef.current}</span></div>
-            <div>✨ Perfect: <span style={{ color: '#00ff00', fontWeight: 'bold' }}>{perfectCountRef.current}</span></div>
-            <div>💀 Miss: <span style={{ color: '#ff0055', fontWeight: 'bold' }}>{missCountRef.current}</span></div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', padding: '50px', background: 'rgba(10,10,20,0.9)', border: '3px solid #00e5ff', borderRadius: '20px' }}>
+          <h2 style={{ fontSize: '3rem', color: '#ffea00' }}>CLEAR!</h2>
+          <div style={{ fontSize: '1.8rem', color: '#fff' }}>
+            <div>🏆 Score: {scoreRef.current}</div>
+            <div>🔥 Max Combo: {maxComboRef.current}</div>
+            <div>✨ Perfect: {perfectCountRef.current}</div>
+            <div>💀 Miss: {missCountRef.current}</div>
           </div>
-
-          <button 
-            onClick={() => setGameState('menu')} 
-            style={{
-              marginTop: '30px', padding: '15px 40px', fontSize: '1.2rem', fontWeight: 'bold', 
-              cursor: 'pointer', backgroundColor: '#b200ff', color: '#fff', border: 'none', 
-              borderRadius: '10px', boxShadow: '0 0 20px rgba(178, 0, 255, 0.6)'
-            }}
-          >
-            돌아가기 (다시하기)
-          </button>
+          <button onClick={() => setGameState('menu')} style={{ padding: '15px 40px', backgroundColor: '#b200ff', color: '#fff', borderRadius: '10px' }}>돌아가기</button>
         </div>
       )}
     </div>
