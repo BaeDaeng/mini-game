@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Blackjack from './blackjack/Blackjack';
 import HighLow from './high-low/HighLow';
 import HoldemEntry from './texas-holdem/index';
+import Spider from './spider/Spider';
 import './CardGamesStyle.css';
 
 export default function CardGamePortal() {
@@ -16,6 +17,7 @@ export default function CardGamePortal() {
   if (activeGame === 'blackjack') return <Blackjack goBack={goToMenu} />;
   if (activeGame === 'highlow') return <HighLow goBack={goToMenu} />;
   if (activeGame === 'holdem') return <HoldemEntry goBack={goToMenu} />;
+  if (activeGame === 'spider') return <Spider goBack={goToMenu} />;
 
   return (
     <div className="card-menu-container">
@@ -43,6 +45,9 @@ export default function CardGamePortal() {
       </button>
       <button className="menu-btn" style={{background: '#c0392b'}} onClick={() => setActiveGame('holdem')}>
         🤠 텍사스 홀덤 (멀티)
+      </button>
+      <button className="menu-btn" style={{background: '#2f517e'}} onClick={() => setActiveGame('spider')}>
+        🕸️ 스파이더 카드놀이
       </button>
     </div>
   );

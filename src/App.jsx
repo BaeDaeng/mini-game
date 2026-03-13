@@ -30,7 +30,7 @@ const MainLobby = () => {
     { path: '/daifugo', title: '대부호 카드', icon: '🃏', img: '/images/daifugo.png', color: '#ff0055' },
     { path: '/gomoku', title: '오목', icon: '⚫', img: '/images/gomoku.png', color: '#aaaaaa' },
     { path: '/superhot', title: '슈퍼핫(PC)', icon: '🔥', img: '/images/superhot.png', color: '#ff4d00' },
-    { path: '/cards', title: '카드 게임 모음', icon: '🃏', img: '/images/card-games.png', color: '#8e44ad' },
+    { path: '/cards', title: '카드게임모음', icon: '🃏', img: '/images/card-games.png', color: '#8e44ad' },
     { path: '/rhythm', title: '리듬게임', icon: '🎶', img: '/images/rhythm-game.png', color: '#3d3c3d' },
   ];
 

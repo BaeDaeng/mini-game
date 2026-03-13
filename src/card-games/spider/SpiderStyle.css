@@ -1,0 +1,142 @@
+/* src/card-games/spider/SpiderStyle.css */
+.spider-board {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #0b5345; /* 카지노 그린 */
+  color: #fff;
+  font-family: 'Noto Sans KR', sans-serif;
+  overflow: hidden;
+}
+
+.spider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.spider-stats {
+  font-size: 1.2rem;
+  font-weight: bold;
+  display: flex;
+  gap: 20px;
+}
+
+/* 테이블 영역 (10개의 열) */
+.tableau-area {
+  display: flex;
+  justify-content: center;
+  gap: 1%;
+  padding: 20px 10px;
+  flex: 1;
+}
+
+.tableau-col {
+  width: 9%;
+  position: relative;
+  min-height: 120px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.spider-card-wrapper {
+  position: absolute;
+  width: 100%;
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.spider-card-wrapper img {
+  width: 100%;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  display: block;
+  background-color: white;
+}
+
+/* 선택된 카드 하이라이트 */
+.spider-card-wrapper.selected img {
+  box-shadow: 0 0 15px 5px #f1c40f;
+  transform: translateY(-5px);
+}
+
+/* 하단 덱(Stock) 및 완성된 세트 영역 */
+.spider-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.4);
+  height: 140px;
+}
+
+.stock-area, .completed-area {
+  display: flex;
+  gap: 10px;
+}
+
+.stock-pile img, .completed-pile img {
+  width: 70px;
+  border-radius: 4px;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+  cursor: pointer;
+}
+
+.stock-pile:hover img {
+  transform: translateY(-5px);
+}
+
+/* 🎆 불꽃놀이 승리 오버레이 🎆 */
+.victory-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.victory-overlay h1 {
+  font-size: 6rem;
+  color: #f1c40f;
+  text-shadow: 0 0 20px #e67e22, 0 0 40px #e74c3c;
+  animation: pop 1s ease-out;
+  z-index: 10;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  80% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* 순수 CSS 불꽃 파티클 (간단 버전) */
+.firework {
+  position: absolute;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 
+    0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff;
+  animation: explode 2s infinite ease-out;
+}
+
+.firework:nth-child(1) { top: 30%; left: 30%; color: #ff0; animation-delay: 0s; }
+.firework:nth-child(2) { top: 40%; left: 70%; color: #0ff; animation-delay: 0.4s; }
+.firework:nth-child(3) { top: 20%; left: 50%; color: #f0f; animation-delay: 0.8s; }
+.firework:nth-child(4) { top: 60%; left: 40%; color: #0f0; animation-delay: 1.2s; }
+
+@keyframes explode {
+  0% { 
+    box-shadow: 0 0 0 -2px currentcolor, 0 0 0 -2px currentcolor, 0 0 0 -2px currentcolor, 0 0 0 -2px currentcolor, 0 0 0 -2px currentcolor, 0 0 0 -2px currentcolor; 
+  }
+  100% { 
+    box-shadow: -100px -100px 0 -2px currentcolor, 100px -100px 0 -2px currentcolor, 100px 100px 0 -2px currentcolor, -100px 100px 0 -2px currentcolor, 0 -140px 0 -2px currentcolor, 0 140px 0 -2px currentcolor; 
+    opacity: 0;
+  }
+}
