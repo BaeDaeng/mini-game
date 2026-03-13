@@ -31,7 +31,7 @@ export default function CardGamePortal() {
           border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold'
         }}
       >
-        ⬅️메인으로
+        ⬅️메인으로 
       </button>
 
       <h1 style={{ fontSize: '3rem', color: '#f1c40f', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
