@@ -1,0 +1,70 @@
+.fw-container {
+  min-height: 100vh;
+  background-color: #111;
+  color: #eee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Pretendard', sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+.fw-stage-box {
+  background: #222;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  text-align: center;
+  max-width: 500px;
+  width: 90%;
+}
+
+.fw-btn {
+  background: #fff;
+  color: #000;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: transform 0.1s;
+}
+
+.fw-btn:active {
+  transform: scale(0.95);
+}
+
+.fw-input {
+  padding: 10px;
+  font-size: 16px;
+  margin-top: 20px;
+  width: 80%;
+  text-align: center;
+}
+
+/* --- 스테이지 5 인쇄 기믹 전용 --- */
+.print-secret {
+  display: none; /* 평소에는 절대 안 보임 */
+}
+
+/* 사용자가 Ctrl+P (인쇄)를 누를 때만 작동하는 CSS */
+@media print {
+  body * {
+    visibility: hidden; /* 화면의 모든 요소를 숨김 */
+  }
+  .print-secret {
+    display: block;
+    visibility: visible;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 50px;
+    font-weight: bold;
+    color: black !important;
+  }
+}
