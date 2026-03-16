@@ -12,6 +12,7 @@ import Gomoku from './gomoku/index.jsx';
 import Superhot from './superhot/superhot.jsx';
 import CardGamePortal from './card-games/index.jsx';
 import RhythmGame from './rhythm-game/rhythm.jsx';
+import Puzzle2048 from './puzzle2048/index.jsx';
 import './App.css'; 
 
 // 메인 로비 화면 컴포넌트
@@ -32,6 +33,7 @@ const MainLobby = () => {
     { path: '/superhot', title: '슈퍼핫(PC)', icon: '🔥', img: '/images/superhot.png', color: '#ff4d00' },
     { path: '/cards', title: '카드게임모음', icon: '🃏', img: '/images/card-games.png', color: '#8e44ad' },
     { path: '/rhythm', title: '리듬게임', icon: '🎶', img: '/images/rhythm-game.png', color: '#3d3c3d' },
+    { path: '/p2048', title: '2048', icon: '🧩', img: '/images/puzzle2048.png', color: '#e7e992' },
   ];
 
   return (
@@ -107,6 +109,7 @@ const App = () => {
         <Route path="/superhot" element={<Superhot />} />
         <Route path="/cards" element={<CardGamePortal />} />
         <Route path="/rhythm" element={<RhythmGame />} />
+        <Route path="/p2048" element={<Puzzle2048 />} />
       </Routes>
     </Router>
   );
