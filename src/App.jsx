@@ -82,7 +82,7 @@ const MainLobby = () => {
       </div>
 
       <footer className="vapor-footer">
-        <div className="coord">latest update 26.03.13</div>
+        <div className="coord">latest update 26.03.16</div>
         <div className="warning">🔖BAEJAEHUN</div>
       </footer>
     </div>

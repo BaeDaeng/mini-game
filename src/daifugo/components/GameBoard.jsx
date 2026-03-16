@@ -20,7 +20,6 @@ export default function GameBoard({ roomId, myId }) {
   const [showRules, setShowRules] = useState(false);
   const [selectedCards, setSelectedCards] = useState([]);
   
-  // 💡 혁명 알림 모달 상태
   const [revAlert, setRevAlert] = useState(null);
   
   const { t, lang } = useLanguage();
@@ -41,13 +40,12 @@ export default function GameBoard({ roomId, myId }) {
     return () => clearTimeout(explosionTimer);
   }, [roomData, myId, roomId]);
 
-  // 💡 혁명 알림창 관리 (에러/경고 없는 깔끔한 비동기 로직)
   useEffect(() => {
     const currentLog = roomData?.revolutionLog;
     if (currentLog && currentLog.id) {
       const showTimer = setTimeout(() => {
         setRevAlert(currentLog);
-      }, 10); // UI 렌더링 꼬임 방지
+      }, 10);
 
       const autoCloseTimer = setTimeout(() => {
         setRevAlert(null);
@@ -66,7 +64,12 @@ export default function GameBoard({ roomId, myId }) {
     if (roomData.status === 'tax_exchange') {
       const updatedPlayers = [...roomData.players];
       const isTaxDone = updatedPlayers.every(p => p.rank === 'Hinmin' || p.rank === 'Daihinmin' || p.taxPaid);
-      if (isTaxDone) { updateDoc(doc(db, 'rooms', roomId), { status: 'playing' }); return; }
+      
+      if (isTaxDone) { 
+        const resetPlayers = updatedPlayers.map(p => ({ ...p, rank: null }));
+        updateDoc(doc(db, 'rooms', roomId), { status: 'playing', players: resetPlayers }); 
+        return; 
+      }
 
       let changed = false;
       roomData.players.forEach((p, i) => {
@@ -157,19 +160,30 @@ export default function GameBoard({ roomId, myId }) {
           const playedRank = selectedCards.find(c => c.rank !== 'Joker')?.rank || 'Joker';
           let skipCount = 1;
 
-          // 💡 CPU 혁명 처리
           if (selectedCards.length >= 4) {
-            newIsRevolution = !newIsRevolution; // 혁명 상태 뒤집기!
+            newIsRevolution = !newIsRevolution; 
             newRevolutionLog = { id: new Date().getTime(), playerName: currentPlayer.name, isRevolution: newIsRevolution };
           }
 
           if (playedRank === 'J') newIs11Back = true;
-          if (playedRank === '5') skipCount += selectedCards.length;
+          // 🔥 버그 수정 1: CPU가 5를 낼 때, 강제 스킵된 사람들을 '패스한 것'으로 카운트 증가!
+          if (playedRank === '5') {
+            skipCount += selectedCards.length;
+            newPassCount = selectedCards.length; 
+          }
           
           if (playedRank === '8') { newTable = []; newPassCount = 0; newIs11Back = false; skipCount = 0; } 
           else if (playedRank === '10') { newPendingAction = 'sute'; skipCount = 0; } 
           else if (playedRank === '7') { newPendingAction = 'watashi'; skipCount = 0; } 
           else if (playedRank === 'Q') { newPendingAction = 'bomber'; skipCount = 0; }
+
+          // 🔥 버그 수정 2: 5의 스킵 효과만으로 모두가 패스된 상태라면 바둑판 즉시 비우기 (선턴 획득)
+          const activePlayerCount = updatedPlayers.filter(p => p.hand.length > 0).length;
+          if (newPassCount >= activePlayerCount - 1 && activePlayerCount > 1 && newTable.length > 0) {
+              newTable = [];
+              newPassCount = 0;
+              newIs11Back = false;
+          }
 
           const isHandEmpty = updatedPlayers[roomData.turn].hand.length === 0;
 
@@ -224,19 +238,31 @@ export default function GameBoard({ roomId, myId }) {
 
     const playedRank = selectedCards.find(c => c.rank !== 'Joker')?.rank || 'Joker';
 
-    // 💡 유저 혁명 처리 로직 확립
     if (selectedCards.length >= 4) {
-      newIsRevolution = !newIsRevolution; // 혁명 상태 뒤집기!
+      newIsRevolution = !newIsRevolution; 
       newRevolutionLog = { id: new Date().getTime(), playerName: me.name, isRevolution: newIsRevolution };
     }
 
     if (playedRank === 'J') newIs11Back = true;
-    if (playedRank === '5') skipCount += selectedCards.length;
+    
+    // 🔥 버그 수정 3: 유저가 5를 낼 때, 강제 스킵된 사람들을 '패스한 것'으로 처리
+    if (playedRank === '5') {
+      skipCount += selectedCards.length;
+      newPassCount = selectedCards.length; 
+    }
 
     if (playedRank === '8') { newTable = []; newPassCount = 0; newIs11Back = false; skipCount = 0; } 
     else if (playedRank === '10') { newPendingAction = 'sute'; skipCount = 0; } 
     else if (playedRank === '7') { newPendingAction = 'watashi'; skipCount = 0; } 
     else if (playedRank === 'Q') { newPendingAction = 'bomber'; skipCount = 0; }
+
+    // 🔥 버그 수정 4: 5의 스킵 효과만으로 모두가 패스된 상태라면 바둑판 즉시 비우기 (선턴 획득)
+    const activePlayerCount = updatedPlayers.filter(p => p.hand.length > 0).length;
+    if (newPassCount >= activePlayerCount - 1 && activePlayerCount > 1 && newTable.length > 0) {
+        newTable = [];
+        newPassCount = 0;
+        newIs11Back = false;
+    }
 
     const isHandEmpty = updatedPlayers[roomData.turn].hand.length === 0;
     if (isHandEmpty) {
@@ -296,7 +322,8 @@ export default function GameBoard({ roomId, myId }) {
   };
 
   const canSubmit = isMyTurn && selectedCards.length > 0 && !roomData.pendingAction && !me.receivedMessage;
-  const canPass = isMyTurn && !roomData.pendingAction && !me.receivedMessage;
+  const canPass = isMyTurn && !roomData.pendingAction && !me.receivedMessage && roomData.table.length > 0;
+  
   const ccwIndices = [1, 2, 0, 3]; 
 
   const reasonText = (reason) => {
@@ -341,9 +368,15 @@ export default function GameBoard({ roomId, myId }) {
         <button className="back-btn" onClick={() => setShowRules(true)} style={{ position: 'absolute', top: 0, left: '10px' }}>{t('ruleBtn')}</button>
         <h2 className="highlight">{roomData.isRevolution ? t('stateRev') : (roomData.is11Back ? t('state11') : t('stateNormal'))}</h2>
       </div>
-      {isMyTurn && <div className="my-turn-banner">{t('myTurnBanner')}</div>}
+      
+      {isMyTurn && (
+        <div className="my-turn-banner" style={{ background: roomData.table.length === 0 ? '#e67e22' : '#2980b9' }}>
+          {roomData.table.length === 0 
+            ? (lang === 'ko' ? '✨ 선턴입니다! 마음대로 카드를 내세요! ✨' : '✨ 親です！好きなカードを出してください！ ✨')
+            : t('myTurnBanner')}
+        </div>
+      )}
 
-      {/* 💡 화면을 꽉 채우는 압도적 혁명 알림창! */}
       {revAlert && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 10005, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div style={{ background: revAlert.isRevolution ? '#c0392b' : '#2980b9', color: 'white', padding: '40px 60px', borderRadius: '20px', textAlign: 'center', boxShadow: '0 0 50px rgba(0,0,0,1)', border: '5px solid #f1c40f', transform: 'scale(1.1)', transition: 'transform 0.3s' }}>
