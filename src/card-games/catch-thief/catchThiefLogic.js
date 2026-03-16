@@ -22,6 +22,30 @@ export const createCatchThiefDeck = () => {
   return deck;
 };
 
+// 💡 스파이 모드 전용 덱 생성 (52장 중 무작위 1장 제거 = 총 51장)
+export const createSpyDeck = () => {
+  const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+  const ranks = ['ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king'];
+  let deck = [];
+  
+  for (let suit of suits) {
+    for (let rank of ranks) {
+      deck.push({ id: `${suit}-${rank}`, suit, rank, image: `/cards/${rank}_${suit}_white.png` });
+    }
+  }
+  
+  // 셔플 (피셔-예이츠 알고리즘)
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  
+  // 💡 스파이 모드 핵심: 조커를 넣는 대신, 섞인 덱에서 아무 카드나 1장 몰래 빼버립니다!
+  deck.pop(); 
+  
+  return deck;
+};
+
 // 손패에서 같은 숫자(rank) 2장이 모이면 제거하는 함수
 export const removePairs = (hand) => {
   let rankCounts = {};
