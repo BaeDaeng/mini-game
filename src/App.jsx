@@ -35,7 +35,7 @@ const MainLobby = () => {
     { path: '/cards', title: '카드게임모음', icon: '🃏', img: '/images/card-games.png', color: '#8e44ad' },
     { path: '/rhythm', title: '리듬게임', icon: '🎶', img: '/images/rhythm-game.png', color: '#3d3c3d' },
     { path: '/p2048', title: '2048', icon: '🧩', img: '/images/puzzle2048.png', color: '#e7e992' },
-    { path: '/fourthwall', title: '제4의벽', icon: '🧩', img: '/images/fourthWall.png', color: '#e7e992' },
+    { path: '/fourthwall', title: '제4의벽(PC)', icon: '🧩', img: '/images/fourthWall.png', color: '#e7e992' },
   ];
 
   return (
@@ -86,7 +86,7 @@ const MainLobby = () => {
       </div>
 
       <footer className="vapor-footer">
-        <div className="coord">latest update 26.03.16</div>
+        <div className="coord">latest update 26.03.17</div>
         <div className="warning">🔖BAEJAEHUN</div>
       </footer>
     </div>

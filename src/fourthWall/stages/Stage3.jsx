@@ -32,7 +32,7 @@ export default function Stage3({ onClear }) {
       <input 
         type="text" 
         className="fw-input" 
-        placeholder="암호를 붙여넣기(Ctrl+V) 하세요"
+        placeholder="암호를 붙여넣기 하세요"
         value={input}
         onChange={(e) => setInput(e.target.value)}
       />
