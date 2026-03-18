@@ -28,15 +28,18 @@ export const getBestMove = (board, playerColor, cpuColor) => {
     return nearMoves[Math.floor(Math.random() * nearMoves.length)];
   }
 
-  // --- [개선 2] 점수 체계 고도화 (가중치 폭 대폭 확대) ---
+  // --- [개선 2] 점수 체계 고도화 (가중치 폭 대폭 확대 및 오목 기준 세분화) ---
   const SCORE = {
-    WIN: 10000000,          // 내가 두면 승리
-    BLOCK_WIN: 5000000,     // 상대 4개 차단 (최우선)
-    ATTACK_OPEN_4: 1000000, // 나의 열린 4개 형성
-    BLOCK_OPEN_4: 800000,   // 상대의 열린 3개 차단 (4개 방지)
-    BLOCK_GAP_3: 500000,    // 상대의 사잇수(C.CC) 차단
-    ATTACK_OPEN_3: 100000,  // 나의 열린 3개 형성
-    BLOCK_CLOSE_3: 1000,    // 한쪽 막힌 3개 (위험도 낮음)
+    WIN: 10000000,          // 오목 완성 (즉시 승리)
+    BLOCK_WIN: 5000000,     // 상대 오목 방지 (즉시 패배 방지)
+    ATTACK_OPEN_4: 1000000, // 나의 열린 4 형성 (필승)
+    BLOCK_OPEN_4: 800000,   // 상대 열린 4 형성 방지 (상대 열린 3 양끝 차단)
+    ATTACK_CLOSE_4: 100000, // 나의 닫힌 4 형성 (상대에게 방어 강요)
+    ATTACK_OPEN_3: 50000,   // 나의 열린 3 형성
+    BLOCK_CLOSE_4: 5000,    // 상대 닫힌 4 형성 방지 (막힌 3 차단 - 당장 안 위험하므로 우선순위 대폭 낮춤)
+    BLOCK_OPEN_3: 4000,     // 상대 열린 3 형성 방지
+    ATTACK_CLOSE_3: 500,    // 나의 닫힌 3 형성
+    BLOCK_CLOSE_3: 100,     // 상대 닫힌 3 형성 방지
     ADJACENT: 10            // 단순 인접
   };
 
@@ -61,30 +64,36 @@ export const getBestMove = (board, playerColor, cpuColor) => {
   return bestMoves[Math.floor(Math.random() * bestMoves.length)].index;
 };
 
+// --- [개선 3] 평가 로직 세분화 ---
 const evaluatePoint = (board, x, y, dx, dy, color, isDefense, SCORE) => {
   const line = getLineString(board, x, y, dx, dy, color);
   let s = 0;
 
-  if (isDefense) {
-    // 1. 상대 4개 차단 (즉시 패배 방지)
-    if (line.includes('CCCC')) return SCORE.BLOCK_WIN;
-    
-    // 2. 상대 열린 3 차단 (양쪽이 . 인 경우)
-    if (line.includes('.CCC.')) s += SCORE.BLOCK_OPEN_4;
-    
-    // 3. 상대 사잇수 차단 (C.CC / CC.C / C.CCC 등)
-    if (line.includes('C.CC') || line.includes('CC.C') || line.includes('CCC.C') || line.includes('C.CCC')) {
-      s += SCORE.BLOCK_GAP_3;
-    }
-
-    // 4. 막힌 3 (위험도 낮음)
-    if (line.includes('XCCC.') || line.includes('.CCCX')) s += SCORE.BLOCK_CLOSE_3;
-  } else {
-    // 공격 로직
-    if (line.includes('CCCC')) s += SCORE.WIN;
-    if (line.includes('.CCC.')) s += SCORE.ATTACK_OPEN_4;
-    if (line.includes('CCC')) s += SCORE.ATTACK_OPEN_3;
+  // 1. 5목 (최우선: 승리 또는 즉시 패배 방어)
+  if (line.includes('CCCCC')) {
+    return isDefense ? SCORE.BLOCK_WIN : SCORE.WIN;
   }
+
+  // 2. 열린 4 (양쪽이 비어있어 다음 턴에 무조건 승리)
+  if (line.includes('.CCCC.')) {
+    return isDefense ? SCORE.BLOCK_OPEN_4 : SCORE.ATTACK_OPEN_4;
+  }
+
+  // 3. 닫힌 4 (한쪽만 비어있는 4) 및 끊어진 4 (C.CCC, CC.CC 등)
+  if (line.includes('CCCC') || line.includes('C.CCC') || line.includes('CC.CC') || line.includes('CCC.C')) {
+    s += isDefense ? SCORE.BLOCK_CLOSE_4 : SCORE.ATTACK_CLOSE_4;
+  }
+  
+  // 4. 열린 3 (양쪽이 비어있는 3) 및 끊어진 열린 3
+  else if (line.includes('.CCC.') || line.includes('.C.CC.') || line.includes('.CC.C.')) {
+    s += isDefense ? SCORE.BLOCK_OPEN_3 : SCORE.ATTACK_OPEN_3;
+  }
+  
+  // 5. 닫힌 3 (한쪽이 막힌 3)
+  else if (line.includes('CCC') || line.includes('C.CC') || line.includes('CC.C')) {
+    s += isDefense ? SCORE.BLOCK_CLOSE_3 : SCORE.ATTACK_CLOSE_3;
+  }
+
   return s;
 };
 
