@@ -1,19 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-export default function Cigarette() {
+export default function Cigarette({ setTotalPuffMs }) {
   const [isPuffing, setIsPuffing] = useState(false);
-  const [progress, setProgress] = useState(0); // 0 (새 담배) ~ 100 (다 탄 담배)
-  const [smokes, setSmokes] = useState([]);
+  const [progress, setProgress] = useState(0);     
+  const [ashLength, setAshLength] = useState(0);   
+  const [smokes, setSmokes] = useState([]);        
+  const [fallingAshes, setFallingAshes] = useState([]); 
+  
+  const cigaretteRef = useRef(null);
 
-  // 실제 평균 흡연 시간 3분 7초 = 187,000ms
-  // (테스트 시 답답하다면 이 값을 10000 정도로 줄여서 확인해보세요)
-  const TOTAL_SMOKE_TIME_MS = 187000; 
+  // 💡 [테스트용] 10초 만에 다 탑니다. 
+  // 확인 후 원래대로 돌리려면 이 값을 187000 으로 변경하세요!
+  const TOTAL_SMOKE_TIME_MS = 40000; 
+  const PAPER_START_WIDTH = 230; 
 
-  const handleMouseDown = () => setIsPuffing(true);
+  const handleMouseDown = () => { if (progress < 100) setIsPuffing(true); };
   const handleMouseUp = () => {
-    setIsPuffing(false);
-    if (progress < 100) {
-      // 마우스를 놓을 때마다 연기 이펙트 생성
+    if (isPuffing && progress < 100) {
+      setIsPuffing(false);
       setSmokes(prev => [...prev, { id: Date.now() }]);
     }
   };
@@ -21,51 +25,122 @@ export default function Cigarette() {
   useEffect(() => {
     let interval;
     if (isPuffing && progress < 100) {
-      // 50ms마다 진행도 업데이트
-      const step = 100 / (TOTAL_SMOKE_TIME_MS / 50);
+      const step = 100 / (TOTAL_SMOKE_TIME_MS / 50); 
       
       interval = setInterval(() => {
         setProgress(p => {
           if (p + step >= 100) {
-            setIsPuffing(false); // 다 타면 강제로 멈춤
+            setIsPuffing(false);
             return 100;
           }
           return p + step;
         });
+
+        setAshLength(prev => {
+          const newAsh = prev + step;
+          // 담배가 12% 탈 때마다 재가 떨어집니다
+          if (newAsh > 12) {
+            dropAsh();
+            return 0; 
+          }
+          return newAsh;
+        });
+        
       }, 50);
     }
     return () => clearInterval(interval);
   }, [isPuffing, progress]);
 
-  // 생성된 연기 이펙트는 4초 후 화면(DOM)에서 제거
+  const isBurning = progress > 0 && progress < 100;
+  
+  useEffect(() => {
+    let timer;
+    if (isBurning) {
+      timer = setInterval(() => {
+        setTotalPuffMs(prev => prev + 1000); 
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isBurning, setTotalPuffMs]);
+
+  const dropAsh = () => {
+    if (cigaretteRef.current) {
+      const rect = cigaretteRef.current.getBoundingClientRect();
+      const dropX = rect.right - 20; 
+      const dropY = rect.top + 5;
+      
+      setFallingAshes(prev => [...prev, { id: Date.now(), x: dropX, y: dropY }]);
+    }
+  };
+
   useEffect(() => {
     if (smokes.length > 0) {
-      const timer = setTimeout(() => {
-        setSmokes(prev => prev.slice(1));
-      }, 4000);
-      return () => clearTimeout(timer);
+      const t = setTimeout(() => setSmokes(p => p.slice(1)), 4000);
+      return () => clearTimeout(t);
     }
   }, [smokes]);
 
+  useEffect(() => {
+    if (fallingAshes.length > 0) {
+      const t = setTimeout(() => setFallingAshes(p => p.slice(1)), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [fallingAshes]);
+
+  const handleChainSmoke = () => {
+    setProgress(0);
+    setAshLength(0);
+    setIsPuffing(false);
+    setTotalPuffMs(0); 
+  };
+
+  // 실시간 너비 계산 (줄어드는 하얀 종이와 늘어나는 재)
+  const currentPaperWidth = PAPER_START_WIDTH * ((100 - progress) / 100);
+  const currentAshWidth = ashLength * 2.3; 
+
   return (
     <div className="cigarette-container">
+      {progress >= 100 && (
+        <div className="chain-smoke-container">
+          <span style={{ color: '#ccc', fontSize: '1.2rem' }}>꽁초만 남았습니다...</span>
+          <button className="chain-smoke-btn" onClick={handleChainSmoke}>
+            🔥 줄담하기 (새 담배 꺼내기)
+          </button>
+        </div>
+      )}
+
       <div
+        ref={cigaretteRef}
         className={`cigarette ${isPuffing ? 'puffing' : ''}`}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onTouchStart={handleMouseDown}
         onTouchEnd={handleMouseUp}
+        style={{ 
+          opacity: progress >= 100 ? 0 : 1, 
+          transition: 'opacity 0.5s',
+          pointerEvents: progress >= 100 ? 'none' : 'auto'
+        }}
       >
         <div className="filter" />
-        {/* progress 수치만큼 흰색 종이 부분의 길이가 줄어듭니다 */}
-        <div className="paper" style={{ width: `${100 - progress}%` }} />
-        {/* 누르고 있을 때만 불씨가 밝아집니다 */}
-        <div className="ash" style={{ opacity: isPuffing ? 1 : 0.4 }} />
+        <div className="paper" style={{ width: `${currentPaperWidth}px` }} />
+        
+        <div className="ash" style={{ width: `${currentAshWidth}px` }}>
+          <div className="fire" style={{ opacity: isPuffing ? 1 : 0.4 }} />
+        </div>
       </div>
 
       {smokes.map(smoke => (
         <div key={smoke.id} className="smoke-puff" />
+      ))}
+
+      {fallingAshes.map(ash => (
+        <div 
+          key={ash.id} 
+          className="falling-ash" 
+          style={{ left: ash.x, top: ash.y, position: 'fixed' }} 
+        />
       ))}
     </div>
   );
