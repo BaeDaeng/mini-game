@@ -14,6 +14,7 @@ import CardGamePortal from './card-games/index.jsx';
 import RhythmGame from './rhythm-game/rhythm.jsx';
 import Puzzle2048 from './puzzle2048/index.jsx';
 import FourthWall from './fourthWall/index.jsx';
+import Tabacco from './tabacco/TabaccoRoom.jsx';
 import './App.css'; 
 
 // 메인 로비 화면 컴포넌트
@@ -36,6 +37,7 @@ const MainLobby = () => {
     { path: '/rhythm', title: '리듬게임', icon: '🎶', img: '/images/rhythm-game.png', color: '#3d3c3d' },
     { path: '/p2048', title: '2048', icon: '🧩', img: '/images/puzzle2048.png', color: '#e7e992' },
     { path: '/fourthwall', title: '제4의벽(PC)', icon: '🧩', img: '/images/fourthWall.png', color: '#e7e992' },
+    { path: '/tabacco', title: '온라인 흡연실', icon: '🚬', img: '/images/tabacco.png', color: '#f5b164' },
   ];
 
   return (
@@ -86,7 +88,7 @@ const MainLobby = () => {
       </div>
 
       <footer className="vapor-footer">
-        <div className="coord">latest update 26.03.18</div>
+        <div className="coord">latest update 26.03.19</div>
         <div className="warning">🔖BAEJAEHUN</div>
       </footer>
     </div>
@@ -113,6 +115,7 @@ const App = () => {
         <Route path="/rhythm" element={<RhythmGame />} />
         <Route path="/p2048" element={<Puzzle2048 />} />
         <Route path="/fourthwall" element={<FourthWall />} />
+        <Route path="/tabacco" element={<Tabacco />} />
       </Routes>
     </Router>
   );
