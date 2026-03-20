@@ -83,7 +83,7 @@ function IzakayaMessage({ msg }) {
   return (
     <div className="smoke-wrapper" style={{ left: `${msg.randomX}%` }}>
       <div className="izakaya-message">
-        <span className="msg-name">({msg.userName}):</span> {msg.text}
+        <span className="msg-name">{msg.userName}:</span> {msg.text}
       </div>
     </div>
   );
