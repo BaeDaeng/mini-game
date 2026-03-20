@@ -30,7 +30,59 @@
 .stat-line { margin: 8px 0; }
 .stat-highlight { color: #ffaa00; font-weight: bold; font-size: 1.2rem; }
 
-/* --- 담배 스타일 --- */
+/* --- 좌측 상단 컨트롤 (모바일 세로 배치 적용) --- */
+.top-left-controls {
+  position: absolute;
+  top: 30px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 20;
+}
+
+.nav-btn {
+  padding: 10px 18px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: white;
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  backdrop-filter: blur(5px);
+  transition: all 0.2s;
+  width: auto;
+  align-self: flex-start;
+}
+
+.nav-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* --- 모바일 환경 대응 --- */
+@media (max-width: 768px) {
+  .top-left-controls {
+    top: 20px;
+    left: 15px;
+    gap: 8px;
+  }
+  
+  .nav-btn {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+
+  .top-right-stats {
+    top: 20px;
+    right: 15px;
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+}
+
+/* --- 담배 스타일 (컨테이너 및 공통) --- */
 .cigarette-container {
   position: relative;
   display: flex;
@@ -45,28 +97,45 @@
 .cigarette {
   display: flex;
   align-items: center;
-  height: 25px;
+  height: 25px; /* 기본 높이 */
   background-color: transparent;
   border-radius: 12px;
   box-shadow: 2px 5px 15px rgba(0,0,0,0.5);
-  transition: transform 0.1s;
+  transition: transform 0.1s, height 0.3s;
 }
 
 .cigarette.puffing { transform: scale(0.98); }
 
+/* --- 담배 종류별 스타일 --- */
+/* 1. 기본 (클래식) */
+.cig-classic .filter { background-color: #d28c46; }
+.cig-classic .paper { background-color: #f4f4f4; }
+
+/* 2. 멘솔 (아이스 - 하얀 필터에 파란 띠) */
+.cig-menthol .filter { 
+  background-color: #ffffff; 
+  border-right: 4px solid #00d2ff; 
+}
+.cig-menthol .paper { background-color: #f4f4f4; }
+
+/* 3. 시가 (두껍고 전체가 갈색) */
+.cig-cigar { height: 35px; } 
+.cig-cigar .filter { background-color: #4a2e15; border-radius: 8px 0 0 8px; }
+.cig-cigar .paper { background-color: #6b4423; }
+
+/* --- 필터, 페이퍼, 재, 불씨 --- */
 .cigarette .filter {
   width: 70px;
   height: 100%;
-  background-color: #d28c46;
   border-radius: 12px 0 0 12px;
-  flex-shrink: 0; /* 추가: 크기 고정 */
+  flex-shrink: 0;
+  transition: background-color 0.3s; 
 }
 
 .cigarette .paper {
   height: 100%;
-  background-color: #f4f4f4;
-  flex-shrink: 0; /* 추가: flex 무시하고 지정된 width만 무조건 따름 */
-  transition: width 0.05s linear; /* 추가: 뚝뚝 끊기지 않고 부드럽게 타들어감 */
+  flex-shrink: 0;
+  transition: width 0.05s linear, background-color 0.3s; 
 }
 
 .cigarette .ash {
@@ -75,8 +144,8 @@
   border-radius: 0 12px 12px 0;
   box-shadow: 0 0 10px #ff3b00 inset;
   position: relative;
-  flex-shrink: 0; /* 추가 */
-  transition: width 0.05s linear; /* 추가 */
+  flex-shrink: 0;
+  transition: width 0.05s linear;
 }
 
 .cigarette .fire {
@@ -90,6 +159,7 @@
   transition: opacity 0.3s;
 }
 
+/* --- 연기 및 재 떨어지는 애니메이션 --- */
 .smoke-puff {
   position: absolute;
   right: -20px;
@@ -124,6 +194,7 @@
   100% { transform: translateY(200px) rotate(90deg); opacity: 0; }
 }
 
+/* --- 줄담하기 버튼 --- */
 .chain-smoke-container {
   position: absolute;
   display: flex;
@@ -154,85 +225,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.top-left-controls {
-  position: absolute;
-  top: 30px;
-  left: 40px;
-  display: flex;
-  gap: 15px;
-  z-index: 20;
-}
-
-.nav-btn {
-  padding: 10px 20px;
-  font-size: 1rem;
-  font-weight: bold;
-  color: white;
-  background-color: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  cursor: pointer;
-  backdrop-filter: blur(5px);
-  transition: all 0.2s;
-}
-
-.nav-btn:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-/* --- 담배 종류별 스타일 (추가 및 덮어쓰기) --- */
-.cigarette {
-  display: flex;
-  align-items: center;
-  height: 25px; /* 기본 높이 */
-  background-color: transparent;
-  border-radius: 12px;
-  box-shadow: 2px 5px 15px rgba(0,0,0,0.5);
-  transition: transform 0.1s, height 0.3s; /* 높이 변화 애니메이션 추가 */
-}
-
-/* 1. 기본 (클래식) */
-.cig-classic .filter { background-color: #d28c46; }
-.cig-classic .paper { background-color: #f4f4f4; }
-
-/* 2. 멘솔 (아이스 - 하얀 필터에 파란 띠) */
-.cig-menthol .filter { 
-  background-color: #ffffff; 
-  border-right: 4px solid #00d2ff; 
-}
-.cig-menthol .paper { background-color: #f4f4f4; }
-
-/* 3. 시가 (두껍고 전체가 갈색) */
-.cig-cigar { height: 35px; } /* 시가는 두껍게 */
-.cig-cigar .filter { background-color: #4a2e15; border-radius: 8px 0 0 8px; }
-.cig-cigar .paper { background-color: #6b4423; }
-
-/* 필터, 페이퍼, 재 공통 (flex-shrink가 있어야 줄어듭니다) */
-.cigarette .filter {
-  width: 70px;
-  height: 100%;
-  border-radius: 12px 0 0 12px;
-  flex-shrink: 0;
-  transition: background-color 0.3s; /* 색상 변경 부드럽게 */
-}
-
-.cigarette .paper {
-  height: 100%;
-  flex-shrink: 0;
-  transition: width 0.05s linear, background-color 0.3s; 
-}
-
-.cigarette .ash {
-  height: 100%;
-  background-color: #555;
-  border-radius: 0 12px 12px 0;
-  box-shadow: 0 0 10px #ff3b00 inset;
-  position: relative;
-  flex-shrink: 0;
-  transition: width 0.05s linear;
-}
-
+/* --- 채팅 영역 --- */
 .chat-container { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: center; z-index: 10; }
 .chat-form { display: flex; gap: 10px; width: 90%; max-width: 600px; background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 20px; backdrop-filter: blur(5px); }
 .chat-form input { flex: 1; padding: 12px 20px; border: none; border-radius: 15px; outline: none; background: rgba(255, 255, 255, 0.8); font-size: 1rem; }
@@ -240,6 +233,7 @@
 .chat-form button:hover { background-color: #666; }
 .chat-messages-layer { position: absolute; bottom: 80px; width: 100%; height: 80vh; pointer-events: none; }
 .smoke-message { position: absolute; bottom: 0; color: rgba(255, 255, 255, 0.9); font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); white-space: nowrap; animation: floatSmokeText 10s ease-in-out forwards; opacity: 0; }
+
 @keyframes floatSmokeText {
   0% { transform: translateY(0) scale(0.9); opacity: 0; filter: blur(0px); }
   10% { opacity: 1; filter: blur(1px); }
