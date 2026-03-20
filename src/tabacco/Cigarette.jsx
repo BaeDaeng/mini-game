@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-export default function Cigarette({ setTotalPuffMs }) {
+// 💡 type Props 추가 수신
+export default function Cigarette({ setTotalPuffMs, type }) {
   const [isPuffing, setIsPuffing] = useState(false);
   const [progress, setProgress] = useState(0);     
   const [ashLength, setAshLength] = useState(0);   
@@ -9,8 +10,7 @@ export default function Cigarette({ setTotalPuffMs }) {
   
   const cigaretteRef = useRef(null);
 
-  // 💡 [테스트용] 10초 만에 다 탑니다. 
-  // 확인 후 원래대로 돌리려면 이 값을 187000 으로 변경하세요!
+  // 현재 테스트용 10초 설정입니다. 확인 후 187000(3분 7초)으로 돌려주세요!
   const TOTAL_SMOKE_TIME_MS = 40000; 
   const PAPER_START_WIDTH = 230; 
 
@@ -38,7 +38,6 @@ export default function Cigarette({ setTotalPuffMs }) {
 
         setAshLength(prev => {
           const newAsh = prev + step;
-          // 담배가 12% 탈 때마다 재가 떨어집니다
           if (newAsh > 12) {
             dropAsh();
             return 0; 
@@ -94,7 +93,6 @@ export default function Cigarette({ setTotalPuffMs }) {
     setTotalPuffMs(0); 
   };
 
-  // 실시간 너비 계산 (줄어드는 하얀 종이와 늘어나는 재)
   const currentPaperWidth = PAPER_START_WIDTH * ((100 - progress) / 100);
   const currentAshWidth = ashLength * 2.3; 
 
@@ -109,9 +107,10 @@ export default function Cigarette({ setTotalPuffMs }) {
         </div>
       )}
 
+      {/* 💡 className에 type(담배 종류) 추가 적용 */}
       <div
         ref={cigaretteRef}
-        className={`cigarette ${isPuffing ? 'puffing' : ''}`}
+        className={`cigarette ${type} ${isPuffing ? 'puffing' : ''}`}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}

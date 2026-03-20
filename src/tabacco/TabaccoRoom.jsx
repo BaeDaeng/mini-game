@@ -8,8 +8,10 @@ import './TabaccoRoom.css';
 export default function TabaccoRoom() { 
   const [totalPuffMs, setTotalPuffMs] = useState(0);
   const [onlineCount, setOnlineCount] = useState(1);
+  
+  // 💡 담배 종류 상태 (기본값: 클래식)
+  const [cigType, setCigType] = useState('cig-classic');
 
-  // 세션 스토리지에 ID가 있으면 그걸 쓰고, 없으면 새로 만들어서 저장 (새로고침 방어)
   const [sessionId] = useState(() => {
     let id = sessionStorage.getItem('tabacco_session_id');
     if (!id) {
@@ -56,8 +58,29 @@ export default function TabaccoRoom() {
     return `${m}분 ${s}초`;
   };
 
+  // 💡 담배 바꾸기 함수 (클래식 -> 멘솔 -> 시가 순환)
+  const handleChangeCigarette = () => {
+    setCigType(prev => {
+      if (prev === 'cig-classic') return 'cig-menthol';
+      if (prev === 'cig-menthol') return 'cig-cigar';
+      return 'cig-classic';
+    });
+  };
+
+  // 💡 메인으로 가기 함수
+  const handleGoMain = () => {
+    // react-router-dom을 사용 중이시라면 useNavigate의 navigate('/')로 변경하세요!
+    window.location.href = '/'; 
+  };
+
   return (
     <div className="tabacco-room">
+      {/* 좌측 상단 컨트롤 패널 */}
+      <div className="top-left-controls">
+        <button className="nav-btn" onClick={handleGoMain}>🏠 메인으로</button>
+        <button className="nav-btn" onClick={handleChangeCigarette}>🔄 담배 바꾸기</button>
+      </div>
+
       <div className="top-right-stats">
         <div className="stat-line">
           🟢 동시 접속자: <span className="stat-highlight">{onlineCount}</span> 명
@@ -67,7 +90,8 @@ export default function TabaccoRoom() {
         </div>
       </div>
 
-      <Cigarette setTotalPuffMs={setTotalPuffMs} />
+      {/* 담배 종류(type)를 Props로 넘겨줍니다 */}
+      <Cigarette setTotalPuffMs={setTotalPuffMs} type={cigType} />
       <Chat />
     </div>
   );
