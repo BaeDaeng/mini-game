@@ -15,6 +15,7 @@ import RhythmGame from './rhythm-game/rhythm.jsx';
 import Puzzle2048 from './puzzle2048/index.jsx';
 import FourthWall from './fourthWall/index.jsx';
 import Tabacco from './tabacco/TabaccoRoom.jsx';
+import IzakayaApp from './izakaya/IzakayaApp';
 import './App.css'; 
 
 // 메인 로비 화면 컴포넌트
@@ -38,6 +39,7 @@ const MainLobby = () => {
     { path: '/p2048', title: '2048', icon: '🧩', img: '/images/puzzle2048.png', color: '#e7e992' },
     { path: '/fourthwall', title: '제4의벽(PC)', icon: '🧩', img: '/images/fourthWall.png', color: '#e7e992' },
     { path: '/tabacco', title: '온라인 흡연실', icon: '🚬', img: '/images/tabacco.png', color: '#f5b164' },
+    { path: '/izakaya', title: '이자카야', icon: '🍻', img: '/images/izakaya.png', color: '#5c3202' },
   ];
 
   return (
@@ -116,6 +118,7 @@ const App = () => {
         <Route path="/p2048" element={<Puzzle2048 />} />
         <Route path="/fourthwall" element={<FourthWall />} />
         <Route path="/tabacco" element={<Tabacco />} />
+        <Route path="/izakaya" element={<IzakayaApp />} />
       </Routes>
     </Router>
   );

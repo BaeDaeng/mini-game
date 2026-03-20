@@ -1,0 +1,117 @@
+/* --- 이자카야 전체 배경 --- */
+.izakaya-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background-color: #2c251d; /* 어두운 목조 느낌 */
+  overflow: hidden;
+  font-family: 'Malgun Gothic', sans-serif;
+  color: #fff;
+}
+
+/* --- 좌측 상단 돌아가기 버튼 --- */
+.back-btn { position: absolute; top: 20px; left: 20px; padding: 10px 20px; background-color: rgba(0, 0, 0, 0.5); color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; cursor: pointer; z-index: 50; font-weight: bold; backdrop-filter: blur(5px); transition: background 0.2s; }
+.back-btn:hover { background-color: #d28c46; }
+
+/* --- 입장 화면 --- */
+.entry-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: radial-gradient(circle, #4a3b2c 0%, #1a1510 100%); }
+.entry-title { font-size: 4rem; font-weight: bold; color: #f4d03f; text-shadow: 0 0 20px rgba(244, 208, 63, 0.5); margin-bottom: 40px; text-align: center; }
+.entry-form { display: flex; flex-direction: column; gap: 20px; background: rgba(0, 0, 0, 0.6); padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); width: 90%; max-width: 400px; }
+.entry-form input[type="text"] { padding: 15px; font-size: 1.2rem; border-radius: 10px; border: none; text-align: center; outline: none; }
+.drink-selection { display: flex; justify-content: space-around; margin-top: 10px; }
+.drink-label { display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 1.2rem; gap: 10px; opacity: 0.5; transition: opacity 0.2s; }
+.drink-label input:checked + span { color: #f4d03f; font-weight: bold; }
+.drink-label input:checked ~ .drink-icon { transform: scale(1.1); }
+.drink-label:has(input:checked) { opacity: 1; }
+.entry-submit { padding: 15px; font-size: 1.2rem; font-weight: bold; color: #333; background-color: #f4d03f; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; transition: background 0.2s; }
+.entry-submit:hover { background-color: #ffdf5e; }
+
+/* --- 이자카야 룸 & 책상 --- */
+.izakaya-room { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.table-wrapper { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+.table-area { width: 90%; max-width: 1000px; height: 60%; background: #5c4033; border-radius: 100px; box-shadow: inset 0 0 50px rgba(0,0,0,0.8), 0 20px 50px rgba(0,0,0,0.5); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 40px; padding: 40px; position: relative; z-index: 10; }
+
+/* --- 책상 주변 병 배치 (수정: 배경 레이어로 완전 분리) --- */
+.background-bottles { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+.bg-bottle { position: absolute; bottom: 0; transform-origin: bottom center; background-size: contain; background-repeat: no-repeat; background-position: center bottom; }
+/* 💡 주변 병 크기 조정: 소주병은 작게, 맥주병은 크게 */
+.bg-bottle.soju { width: 40px; height: 100px; }
+.bg-bottle.beer { width: 50px; height: 130px; }
+
+/* --- 개별 유저와 술잔 --- */
+.user-glass-wrapper { display: flex; flex-direction: column; align-items: center; gap: 15px; position: relative; }
+.user-name-tag { background: rgba(0, 0, 0, 0.7); padding: 5px 15px; border-radius: 15px; font-size: 1rem; font-weight: bold; color: #ddd; }
+
+.glass-container {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  width: 100px; 
+  height: 150px; 
+  /* 모바일에서 꾹 누를 때 화면 선택/돋보기 방지 */
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none; 
+}
+.glass-container:hover { transform: scale(1.05); }
+
+.glass-beer { width: 60px; height: 90px; border: 4px solid rgba(255, 255, 255, 0.4); border-top: none; border-radius: 0 0 10px 10px; position: relative; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+.glass-beer::before { content: ''; position: absolute; right: -20px; top: 15px; width: 15px; height: 45px; border: 4px solid rgba(255, 255, 255, 0.4); border-left: none; border-radius: 0 10px 10px 0; }
+.glass-soju { width: 45px; height: 50px; border: 3px solid rgba(255, 255, 255, 0.6); border-top: none; border-radius: 0 0 15px 15px; position: relative; background: rgba(255, 255, 255, 0.2); overflow: hidden; }
+
+.liquid { position: absolute; bottom: 0; width: 100%; transition: height 0.1s linear; }
+.liquid-beer { background-color: #e6b12c; }
+.liquid-soju { background-color: rgba(200, 240, 255, 0.6); }
+
+/* --- 술 따르기 애니메이션 (술병) --- */
+.bottle {
+  position: absolute;
+  top: 0; 
+  right: -50px; 
+  z-index: 20;
+  opacity: 0;
+  transform-origin: bottom center; 
+  pointer-events: none;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  /* 꾹 누르는 동안 부드럽게 기울어지게 */
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* 💡 따르는 병 크기 조정: PC/모바일 대응 */
+.bottle-soju { width: 35px; height: 100px; right: -45px; }
+.bottle-beer { width: 45px; height: 130px; top: -30px; right: -55px; }
+
+.bottle.pouring {
+  opacity: 1;
+  transform: rotate(-70deg) translate(-25px, 20px);
+}
+
+/* --- 채팅 영역 --- */
+.chat-container { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: center; z-index: 30; }
+.chat-form { display: flex; gap: 10px; width: 90%; max-width: 600px; background: rgba(0, 0, 0, 0.6); padding: 10px; border-radius: 20px; backdrop-filter: blur(5px); }
+.chat-form input { flex: 1; padding: 12px 20px; border: none; border-radius: 15px; outline: none; background: rgba(255, 255, 255, 0.9); font-size: 1rem; }
+.chat-form button { padding: 10px 25px; border: none; border-radius: 15px; background-color: #d28c46; color: white; cursor: pointer; transition: background 0.2s; font-weight: bold; }
+.chat-form button:hover { background-color: #f4d03f; color: #333; }
+.chat-messages-layer { position: absolute; bottom: 80px; width: 100%; height: 80vh; pointer-events: none; overflow: hidden; }
+.smoke-wrapper { position: absolute; bottom: 0; transform: translateX(-50%); width: max-content; max-width: 80vw; display: flex; justify-content: center; }
+.izakaya-message { color: #fff; font-size: 1.3rem; font-weight: bold; text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8); white-space: pre-wrap; word-break: break-word; text-align: center; background: rgba(0, 0, 0, 0.4); padding: 8px 16px; border-radius: 20px; animation: floatUp 15s linear forwards; opacity: 0; }
+.msg-name { color: #f4d03f; margin-right: 5px; }
+
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(0.9); opacity: 0; }
+  5% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateY(-80vh) scale(1.1); opacity: 0; }
+}
+
+@media (max-width: 768px) {
+  .entry-title { font-size: 2.5rem; }
+  .table-area { border-radius: 40px; height: 70%; padding: 20px; gap: 20px; }
+  .user-name-tag { font-size: 0.85rem; padding: 4px 10px; }
+  .background-bottles { display: none; } /* 모바일에서는 배경 병 숨기기 */
+}
