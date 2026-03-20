@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // useRef 제거
+import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 
@@ -6,8 +6,6 @@ export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   
-  // 💡 수정된 부분: useRef 대신 useState 지연 초기화 사용
-  // 컴포넌트가 처음 렌더링될 때 딱 한 번만 Date.now()를 실행하여 고정합니다.
   const [joinTime] = useState(() => Date.now()); 
 
   useEffect(() => {
@@ -17,10 +15,8 @@ export default function Chat() {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
           const data = change.doc.data();
-          
           const msgTime = data.createdAt ? data.createdAt.toMillis() : Date.now();
           
-          // 💡 수정된 부분: joinTime.current 대신 joinTime 사용
           if (msgTime >= joinTime) {
             const newMsg = { id: change.doc.id, ...data };
             
@@ -34,7 +30,7 @@ export default function Chat() {
     });
     
     return () => unsubscribe();
-  }, [joinTime]); // 의존성 배열에 joinTime 추가
+  }, [joinTime]); 
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -46,7 +42,8 @@ export default function Chat() {
     await addDoc(collection(db, "tabacco_chat"), {
       text: text,
       createdAt: serverTimestamp(),
-      randomX: Math.random() * 70 + 10 
+      // 💡 화면 양 끝에 너무 붙지 않도록 20% ~ 80% 사이에서 등장하게 수정
+      randomX: Math.random() * 60 + 20 
     });
   };
 
@@ -85,11 +82,9 @@ function SmokeMessage({ msg }) {
   if (!visible) return null;
 
   return (
-    <div
-      className="smoke-message"
-      style={{ left: `${msg.randomX}%` }}
-    >
-      {msg.text}
+    // 💡 래퍼를 추가하여 화면 밖으로 나가지 않게 X좌표 중앙 정렬
+    <div className="smoke-wrapper" style={{ left: `${msg.randomX}%` }}>
+      <div className="smoke-message">{msg.text}</div>
     </div>
   );
 }

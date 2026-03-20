@@ -232,11 +232,35 @@
 .chat-form button { padding: 10px 25px; border: none; border-radius: 15px; background-color: #444; color: white; cursor: pointer; transition: background 0.2s; font-weight: bold; }
 .chat-form button:hover { background-color: #666; }
 .chat-messages-layer { position: absolute; bottom: 80px; width: 100%; height: 80vh; pointer-events: none; }
-.smoke-message { position: absolute; bottom: 0; color: rgba(255, 255, 255, 0.9); font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); white-space: nowrap; animation: floatSmokeText 10s ease-in-out forwards; opacity: 0; }
+
+/* 💡 추가된 래퍼 속성: 위치 정렬 및 최대 너비 제한 */
+.smoke-wrapper {
+  position: absolute;
+  bottom: 0;
+  transform: translateX(-50%); /* 지정된 left 좌표를 기준으로 정확히 가운데 정렬 */
+  width: max-content;
+  max-width: 80vw; /* 모바일에서도 화면 너비의 80%를 넘지 못하게 제한 */
+  display: flex;
+  justify-content: center;
+}
+
+/* 💡 연기 메시지 속성 변경: 줄바꿈 허용 */
+.smoke-message {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  white-space: pre-wrap; /* 한 줄 고정(nowrap)에서 자동 줄바꿈으로 변경 */
+  word-break: break-word; /* 긴 단어나 문장을 강제로 줄바꿈 */
+  text-align: center;
+  animation: floatSmokeText 10s ease-in-out forwards;
+  opacity: 0;
+}
 
 @keyframes floatSmokeText {
   0% { transform: translateY(0) scale(0.9); opacity: 0; filter: blur(0px); }
   10% { opacity: 1; filter: blur(1px); }
   70% { opacity: 0.6; filter: blur(3px); }
-  100% { transform: translateY(-70vh) scale(1.8) rotate(3deg); opacity: 0; filter: blur(15px); }
+  /* 위로 올라갈 때 텍스트가 너무 커져서 잘리지 않게 scale 1.8 -> 1.5 로 축소 */
+  100% { transform: translateY(-70vh) scale(1.5) rotate(3deg); opacity: 0; filter: blur(15px); }
 }
