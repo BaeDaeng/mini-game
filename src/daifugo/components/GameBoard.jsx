@@ -1,6 +1,6 @@
 // src/daifugo/components/GameBoard.jsx
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
+import { db } from '../../firebase';
 import { doc, onSnapshot, updateDoc, deleteDoc } from 'firebase/firestore';
 import { isValidPlay, getNextActiveTurn, sortHand } from '../utils/gameLogic';
 import { getCpuBestPlay, getCpuWeakestCards, getCpuBomberTarget } from '../utils/cpuAi';

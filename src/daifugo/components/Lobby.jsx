@@ -1,6 +1,6 @@
 // src/daifugo/components/Lobby.jsx
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
+import { db } from '../../firebase';
 import { doc, setDoc, getDoc, updateDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
 import { distributeCards } from '../utils/deck';
 import { useLanguage } from '../LanguageContext';

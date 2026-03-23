@@ -1,6 +1,6 @@
 // src/gomoku/MultiMode.jsx
 import React, { useState, useEffect } from 'react';
-import { db } from './firebase';
+import { db } from '../firebase';
 import { doc, setDoc, getDoc, updateDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { createEmptyBoard, checkWin, checkDraw } from './utils/gomokuLogic';
 
