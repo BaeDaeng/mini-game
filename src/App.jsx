@@ -41,7 +41,7 @@ const MainLobby = () => {
     { path: '/fourthwall', title: '제4의벽(PC)', icon: '🧩', img: '/images/fourthWall.png', color: '#e7e992' },
     { path: '/tabacco', title: '온라인 흡연실', icon: '🚬', img: '/images/tabacco.png', color: '#f5b164' },
     { path: '/izakaya', title: '이자카야', icon: '🍻', img: '/images/izakaya.png', color: '#5c3202' },
-    { path: '/randomcardrpg', title: '랜덤카드RPG', icon: '📇', img: '/images/notready.png', color: '#30680f', disabled: true },
+    { path: '/randomcardrpg', title: '랜덤카드RPG', icon: '📇', img: '/images/random-card-rpg.png', color: '#30680f', disabled: true },
   ];
 
   return (
