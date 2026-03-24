@@ -1,62 +1,193 @@
 // 전체 레이아웃
-import React, { useState } from 'react';
-import { useGameEngine } from '../hooks/useGameEngine';
-import { getRandomChoices } from '../data/symbols';
+import React, { useState, useEffect } from 'react';
+import { useGameEngine, createItem } from '../hooks/useGameEngine';
+import { SYMBOLS, getRandomSymbol } from '../data/symbols';
+import { RELICS, getRandomRelic } from '../data/relics';
 import SlotGrid from './SlotGrid';
 import LeftPanel from './LeftPanel';
 import RelicPanel from './RelicPanel';
 import SymbolModal from './SymbolModal';
+import ItemDetailModal from './ItemDetailModal';
 import InventoryModal from './InventoryModal';
+import RemoveModal from './RemoveModal'; // 새로 추가된 아이템 제거 모달
 import '../GameStyle.css';
 
 const MainLayout = () => {
+  const [screen, setScreen] = useState('main'); 
   const engine = useGameEngine();
+  
   const [isSymbolModalOpen, setIsSymbolModalOpen] = useState(false);
-  const [choices, setChoices] = useState([]);
+  const [isRelicModalOpen, setIsRelicModalOpen] = useState(false);
   const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
+  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false); // 제거 모달 상태 추가
+  
+  const [choices, setChoices] = useState([]);
+  const [relicChoices, setRelicChoices] = useState([]);
+  const [detailItem, setDetailItem] = useState(null);
 
-  const handleSpin = () => {
+  const handleSpinClick = () => {
     engine.spin();
-    setChoices(getRandomChoices(3));
-    setTimeout(() => setIsSymbolModalOpen(true), 500); // 연출을 위한 약간의 지연
   };
 
-  const selectSymbol = (symbol) => {
-    engine.setInventorySymbols(prev => [...prev, symbol]);
-    setIsSymbolModalOpen(false);
+  useEffect(() => {
+    if (engine.turnState === 'finished') {
+      engine.setTurnState('idle'); 
+      
+      if (engine.daysLeft <= 0) {
+        if (engine.gold >= engine.targetGold) {
+          engine.nextStage();
+          setRelicChoices([getRandomRelic(engine.equippedRelics)]);
+          setIsRelicModalOpen(true);
+        } else {
+          alert("파산했습니다. 처음부터 다시 시작합니다.");
+          engine.restartGame();
+          setScreen('main');
+        }
+      } else {
+        setChoices([getRandomSymbol(engine.stage), getRandomSymbol(engine.stage), getRandomSymbol(engine.stage)]);
+        setIsSymbolModalOpen(true);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [engine.turnState]);
+
+  const handleReroll = () => {
+    if (engine.useReroll()) {
+      setChoices([getRandomSymbol(engine.stage), getRandomSymbol(engine.stage), getRandomSymbol(engine.stage)]);
+    }
   };
+
+  if (screen === 'main') {
+    return (
+      <div className="game-layout" style={{ justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+        <h1 style={{ fontSize: '4rem', color: '#fff', textShadow: '2px 2px #000' }}>랜덤 카드 모험</h1>
+        <button className="btn-yellow pixel-border" style={{ fontSize: '2rem', width: '300px', margin: '10px' }} onClick={() => setScreen('game')}>게임 시작</button>
+        <button className="btn-yellow pixel-border" style={{ fontSize: '2rem', width: '300px', margin: '10px' }} onClick={() => setScreen('dictionary')}>도감</button>
+      </div>
+    );
+  }
+
+  if (screen === 'dictionary') {
+    return (
+      <div className="game-layout" style={{ flexDirection: 'column', overflowY: 'auto' }}>
+        <button className="btn-yellow pixel-border" onClick={() => setScreen('main')} style={{ width: '150px' }}>돌아가기</button>
+        <h2>아이템 도감</h2>
+        <div className="dict-grid">
+          {SYMBOLS.map((s, i) => (
+            <div key={i} className={`dict-item rarity-${s.rarity}`} onClick={() => setDetailItem(s)}>
+              <div style={{ fontSize: '2rem' }}>{s.name.split(' ')[0]}</div>
+              <div>{s.name.split(' ').slice(1).join(' ')}</div>
+            </div>
+          ))}
+        </div>
+        <h2 style={{ marginTop: '30px' }}>유물 도감</h2>
+        <div className="dict-grid">
+          {RELICS.map((r, i) => (
+            <div key={i} className={`dict-item rarity-${r.rarity}`} onClick={() => setDetailItem({ ...r, isRelic: true })}>
+              <div style={{ fontSize: '2rem' }}>{r.name.split(' ')[0]}</div>
+              <div>{r.name.split(' ').slice(1).join(' ')}</div>
+            </div>
+          ))}
+        </div>
+        <ItemDetailModal item={detailItem} isRelic={detailItem?.isRelic} onClose={() => setDetailItem(null)} />
+      </div>
+    );
+  }
 
   return (
     <div className="game-layout">
+      {/* 왼쪽 패널에 제거 팝업 열기 연결 */}
       <LeftPanel 
-          daysLeft={engine.daysLeft}
-          gold={engine.gold}
-          targetGold={engine.targetGold}
-          X_count={engine.X_count}
-          onToggleRemoveMode={engine.toggleRemoveMode}
-          isRemoveMode={engine.isRemoveMode}
-          onOpenInventory={() => setIsInventoryModalOpen(true)}
+        {...engine} 
+        onOpenInventory={() => setIsInventoryModalOpen(true)} 
+        onOpenRemoveModal={() => setIsRemoveModalOpen(true)}
       />
       
       <main className="center-grid">
-        <SlotGrid slots={engine.displaySlots} />
-        <button className="btn-center pixel-border wooden-bg" onClick={handleSpin} disabled={engine.daysLeft <= 0}>
+        <div className="scroll-wrapper pixel-border">
+          <div style={{ position: 'absolute', top: '-15px', left: '20px', background: '#5a3c22', color: 'white', padding: '5px 15px', fontWeight: 'bold' }}>STAGE {engine.stage}</div>
+          
+          <SlotGrid 
+            slots={engine.displaySlots} 
+            onSlotClick={item => setDetailItem(item)} 
+            turnResults={engine.turnResults} 
+            effectResults={engine.effectResults}
+            destroyedSlots={engine.destroyedSlots}
+          />
+          
+          {engine.turnTotal !== null && (
+            <div style={{
+              position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
+              fontSize: '4rem', fontWeight: 'bold', color: engine.turnTotal >= 0 ? '#4CAF50' : '#F44336',
+              textShadow: '3px 3px 0 #fff, -3px -3px 0 #fff, 3px -3px 0 #fff, -3px 3px 0 #fff, 5px 5px 10px rgba(0,0,0,0.5)',
+              zIndex: 50, pointerEvents: 'none', animation: 'floatUp 2s ease-out forwards'
+            }}>
+              {engine.turnTotal > 0 ? `+${engine.turnTotal}G` : `${engine.turnTotal}G`}
+            </div>
+          )}
+        </div>
+        
+        <button 
+          className="btn-yellow btn-center pixel-border" 
+          onClick={handleSpinClick} 
+          disabled={engine.daysLeft <= 0 || engine.turnState !== 'idle'}
+        >
           섞기
         </button>
-        {isSymbolModalOpen && <SymbolModal isOpen={isSymbolModalOpen} choices={choices} onSelect={selectSymbol} />}
-        {isInventoryModalOpen && <InventoryModal 
+
+        {/* 제거 전용 모달 연결 */}
+        {isRemoveModalOpen && (
+          <RemoveModal 
+            isOpen={isRemoveModalOpen} 
+            onClose={() => setIsRemoveModalOpen(false)} 
+            inventorySymbols={engine.inventorySymbols}
+            removeCount={engine.removeCount}
+            onRemove={engine.removeSymbol}
+          />
+        )}
+
+        <SymbolModal 
+          isOpen={isSymbolModalOpen} 
+          choices={choices} 
+          spinCount={engine.spinCount} 
+          onReroll={handleReroll} 
+          onSelect={s => { engine.setInventorySymbols(p => [...p, createItem(s)]); setIsSymbolModalOpen(false); }} 
+        />
+        
+        {isInventoryModalOpen && (
+          <InventoryModal 
             isOpen={isInventoryModalOpen} 
             onClose={() => setIsInventoryModalOpen(false)}
             inventorySymbols={engine.inventorySymbols}
-            inventoryRelics={engine.inventoryRelics}
+            inventoryRelics={engine.inventoryRelics || []}
             onEquipRelic={engine.equipRelic}
-        />}
+            onItemClick={setDetailItem} 
+          />
+        )}
+        
+        {isRelicModalOpen && (
+          <div className="modal-overlay open"><div className="modal-content">
+            <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>스테이지 클리어 보상 (유물)</h2>
+            <div className="choice-list">
+              {relicChoices.map((r, i) => (
+                <div key={i} className="dict-item pixel-border" onClick={() => { engine.addRelic(r); setIsRelicModalOpen(false); }}>
+                  <div style={{ fontSize: '3rem' }}>{r.name.split(' ')[0]}</div>
+                  <div className={`rarity-${r.rarity}`} style={{ fontWeight: 'bold', marginTop: '10px' }}>{r.name.split(' ').slice(1).join(' ')}</div>
+                </div>
+              ))}
+            </div>
+          </div></div>
+        )}
+
+        <ItemDetailModal item={detailItem} isRelic={detailItem?.isRelic} onClose={() => setDetailItem(null)} />
       </main>
 
+      {/* 유물 패널에서 더이상 아이템 제거 기능이 필요 없으므로 isRemoveMode 관련 설정은 지워도 무방하지만 그대로 둬도 안전합니다 */}
       <RelicPanel 
-          equippedRelics={engine.equippedRelics} 
-          onRemoveRelic={engine.removeRelic}
-          isRemoveMode={engine.isRemoveMode}
+        equippedRelics={engine.equippedRelics} 
+        onRelicClick={r => setDetailItem({ ...r, isRelic: true })} 
+        isRemoveMode={engine.isRemoveMode}
+        onRemoveRelic={engine.removeRelic}
       />
     </div>
   );

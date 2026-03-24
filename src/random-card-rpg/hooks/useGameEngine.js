@@ -1,105 +1,188 @@
 // 게임의 모든 상태와 계산 로직
+// src/random-card-rpg/hooks/useGameEngine.js
 import { useState, useCallback } from 'react';
 import { SYMBOLS } from '../data/symbols';
-// import { RELICS } from '../data/relics'; // 처음엔 유물이 없으니 주석 처리하거나 빈 배열 사용
+import { RELICS, getRandomRelic } from '../data/relics';
+import { processBoardEffects } from '../utils/effectLogic';
+
+export const createItem = (baseItem) => ({ 
+  ...baseItem, 
+  uid: Math.random().toString(36).substr(2, 9), 
+  stacks: 0,
+  age: 0
+});
 
 export const useGameEngine = () => {
-  // 실제 게임 시작에 맞는 초기값 설정
+  const [stage, setStage] = useState(1);
   const [gold, setGold] = useState(0); 
-  const [targetGold, setTargetGold] = useState(100); // 1스테이지 목표 (예시)
-  const [daysLeft, setDaysLeft] = useState(5); // 1스테이지 기한 (예시)
-  const [inventorySymbols, setInventorySymbols] = useState([...Array(5).fill(SYMBOLS[0])]); // 기본 동전 5개로 시작
+  const [targetGold, setTargetGold] = useState(30); 
+  const [daysLeft, setDaysLeft] = useState(7); 
+  
+  const initialDeck = [
+    SYMBOLS.find(s => s.id === 'priest'),
+    SYMBOLS.find(s => s.id === 'blessing'),
+    SYMBOLS.find(s => s.id === 'fairy'),
+    SYMBOLS.find(s => s.id === 'heretic'),
+    SYMBOLS.find(s => s.id === 'coin'),
+    SYMBOLS.find(s => s.id === 'coin')
+  ].map(createItem);
+  
+  const [inventorySymbols, setInventorySymbols] = useState(initialDeck); 
   const [displaySlots, setDisplaySlots] = useState(Array(20).fill(null));
   
-  const [X_count, setX_count] = useState(0); // 처음엔 X 없음 (게임 진행하며 획득)
-  const [equippedRelics, setEquippedRelics] = useState([]); // 처음엔 장착 유물 없음
-  const [inventoryRelics, setInventoryRelics] = useState([]); // 보유 유물도 없음
+  const [removeCount, setRemoveCount] = useState(1); 
+  const [spinCount, setSpinCount] = useState(1);     
+  const [equippedRelics, setEquippedRelics] = useState([]);
   const [isRemoveMode, setIsRemoveMode] = useState(false);
+  const [baseGoldBonus, setBaseGoldBonus] = useState(0); 
 
-  const calculateIncome = useCallback((board) => {
-    let income = 0;
-    board.forEach((s) => {
-      if (!s) return;
-      let val = s.value;
-      
-      // 심볼 시너지 계산
-      if (s.id === 'cat' && board.some(item => item?.id === 'milk')) val *= 3;
-      if (s.id === 'flower' && board.some(item => item?.id === 'water')) val += 3;
-      
-      // 유물 개별 시너지 반영
-      equippedRelics.forEach(relic => {
-        if (relic.effectFunction) {
-          income = relic.effectFunction(board, s, val, income);
-        }
-      });
-      
-      income += val;
-    });
-    
-    // 유물 전체 시너지 반영
-    equippedRelics.forEach(relic => {
-        if (relic.overallEffectFunction) {
-            income = relic.overallEffectFunction(board, income);
-        }
-    });
-
-    return income;
-  }, [equippedRelics]);
+  const [turnState, setTurnState] = useState('idle'); 
+  const [turnResults, setTurnResults] = useState(Array(20).fill(null)); 
+  const [turnTotal, setTurnTotal] = useState(null); 
+  const [effectResults, setEffectResults] = useState(Array(20).fill(null));
+  const [destroyedSlots, setDestroyedSlots] = useState(Array(20).fill(false));
 
   const spin = useCallback(() => {
-    // 남은 턴이 없으면 스핀을 막는 방어 로직
-    if (daysLeft <= 0) return;
+    if (daysLeft <= 0 || turnState !== 'idle') return;
 
-    // 덱에서 20개를 랜덤으로 뽑아 보드에 배치
-    const board = [...inventorySymbols].sort(() => 0.5 - Math.random()).slice(0, 20);
+    setTurnState('gold_anim');
+
+    // 턴 나이(age)를 스핀 버튼 누르는 즉시 올려서 배지 UI에 바로 반영
+    const currentInv = inventorySymbols.map(item => ({ ...item, age: (item.age || 0) + 1 }));
+
+    const shuffledInv = [...currentInv].sort(() => 0.5 - Math.random());
+    const selected = shuffledInv.slice(0, 20);
+    let board = [...selected, ...Array(20 - selected.length).fill(null)].sort(() => 0.5 - Math.random());
+    
     setDisplaySlots(board);
+    setInventorySymbols(currentInv); // 바뀐 나이를 인벤토리에도 미리 1차 갱신
 
-    // 수입 계산 및 상태 업데이트
-    const income = calculateIncome(board);
-    setGold(prev => prev + income);
-    setDaysLeft(prev => prev - 1);
-  }, [calculateIncome, inventorySymbols, daysLeft]);
+    let income = 0;
+    let slotIncomes = Array(20).fill(null);
 
-  const addRelicToInventory = (relic) => {
-    setInventoryRelics(prev => [...prev, relic]);
-  };
+    let globalBonus = 0;
+    const cainCount = currentInv.filter(s => s.id === 'cain_bless').length;
+    const blessPriestCount = currentInv.filter(s => s.id === 'bless_priest').length;
+    const highBlessCount = currentInv.filter(s => ['zenaris_bless', 'agnes_bless', 'echidna_bless', 'lurutia_bless'].includes(s.id)).length;
+    globalBonus += cainCount; 
+    globalBonus += (blessPriestCount * highBlessCount * 2); 
 
-  const equipRelic = (relicIndex) => {
-    setInventoryRelics(prev => {
-      const newInventory = [...prev];
-      const relicToEquip = newInventory.splice(relicIndex, 1)[0];
-      setEquippedRelics(equipped => [...equipped, relicToEquip]);
-      return newInventory;
+    board.forEach((s, index) => { 
+      if (!s) return;
+      let val = baseGoldBonus; 
+      if (s.gold) val += s.gold; 
+      if (val !== 0) slotIncomes[index] = val; 
+      income += val; 
     });
-  };
+    
+    income += globalBonus;
 
-  const removeRelic = (relicIndex) => {
-    if (X_count > 0 && equippedRelics[relicIndex]) {
-      setEquippedRelics(prev => {
-        const newEquipped = [...prev];
-        // 제거된 유물은 파괴로 처리
-        newEquipped.splice(relicIndex, 1);
-        return newEquipped;
+    setTurnResults(slotIncomes);
+    setTurnTotal(income);
+    setGold(prev => prev + income);
+
+    // 1단계 연출 후 (2초 대기)
+    setTimeout(() => {
+      setTurnResults(Array(20).fill(null));
+      setTurnTotal(null);
+
+      // 2단계 효과 판정
+      const { effectResults: effResults, destroyedSlots: destSlots, itemsToAdd, uidsToRemove, stackUpdates, mutations, extraGold, extraRemoves, extraSpins, extraRelics, permGoldInc } = processBoardEffects(board);
+
+      const hasEffects = effResults.some(r => r !== null) || destSlots.some(d => d);
+
+      if (hasEffects) {
+        setTurnState('effect_anim');
+        setEffectResults(effResults);
+        setDestroyedSlots(destSlots);
+        
+        if (extraGold !== 0) setGold(g => g + extraGold);
+        if (extraRemoves > 0) setRemoveCount(r => r + extraRemoves);
+        if (extraSpins > 0) setSpinCount(s => s + extraSpins);
+        if (permGoldInc > 0) setBaseGoldBonus(b => b + permGoldInc);
+        if (extraRelics > 0) {
+          for(let i=0; i<extraRelics; i++) setEquippedRelics(prev => [...prev, getRandomRelic(prev)]);
+        }
+
+        setInventorySymbols(prev => {
+          let nextInv = prev.filter(item => !uidsToRemove.includes(item.uid));
+          nextInv = nextInv.map(item => {
+            let n = { ...item };
+            if (stackUpdates[item.uid] !== undefined) n.stacks = stackUpdates[item.uid];
+            if (mutations[item.uid]) {
+              const base = SYMBOLS.find(s => s.id === mutations[item.uid]);
+              if (base) n = { ...base, uid: item.uid, stacks: 0, age: 0 };
+            }
+            return n;
+          });
+          itemsToAdd.forEach(id => {
+            const base = SYMBOLS.find(s => s.id === id);
+            if (base) nextInv.push(createItem(base));
+          });
+          return nextInv;
+        });
+
+        setTimeout(() => {
+          setEffectResults(Array(20).fill(null));
+          setDestroyedSlots(Array(20).fill(false));
+          completeTurn();
+        }, 2000);
+      } else {
+        completeTurn();
+      }
+    }, 2000);
+
+    function completeTurn() {
+      setDaysLeft(prev => {
+        const newDays = prev - 1;
+        setTurnState('finished');
+        return newDays;
       });
-      setX_count(prev => prev - 1);
-      
-      // 유물을 다 지웠는데 제거 모드가 켜져있으면 자동으로 끄기
-      if (X_count - 1 === 0) setIsRemoveMode(false);
+    }
+  }, [inventorySymbols, daysLeft, turnState, baseGoldBonus]);
+
+  const useReroll = () => { if (spinCount > 0) { setSpinCount(p => p - 1); return true; } return false; };
+  const removeSymbol = (index) => {
+    if (removeCount > 0 && inventorySymbols[index].id !== 'priest') {
+      setInventorySymbols(p => { const n = [...p]; n.splice(index, 1); return n; });
+      setRemoveCount(p => p - 1);
+      return true;
+    }
+    return false;
+  };
+  const removeRelic = (relicIndex) => {
+    if (removeCount > 0 && equippedRelics[relicIndex]) {
+      setEquippedRelics(p => { const n = [...p]; n.splice(relicIndex, 1); return n; });
+      setRemoveCount(p => p - 1);
+      if (removeCount - 1 === 0) setIsRemoveMode(false);
     }
   };
+  const toggleRemoveMode = () => { if (removeCount > 0) setIsRemoveMode(p => !p); };
 
-  const addX = (count) => {
-    setX_count(prev => prev + count);
+  const nextStage = () => {
+    setGold(prev => prev - targetGold); 
+    setTargetGold(prev => Math.floor(prev * 1.5) + 20); 
+    setDaysLeft(7); 
+    setRemoveCount(prev => prev + stage); 
+    setSpinCount(prev => prev + stage);
+    setStage(prev => prev + 1); 
+    setDisplaySlots(Array(20).fill(null)); 
+    setTurnState('idle');
   };
 
-  const toggleRemoveMode = () => {
-    if (X_count > 0) setIsRemoveMode(prev => !prev);
+  const restartGame = () => {
+    setStage(1); setGold(0); setTargetGold(30); setDaysLeft(7);
+    setInventorySymbols(initialDeck); setDisplaySlots(Array(20).fill(null));
+    setRemoveCount(1); setSpinCount(1); setEquippedRelics([]); setBaseGoldBonus(0);
+    setTurnState('idle');
   };
+
+  const addRelic = (relic) => setEquippedRelics(prev => [...prev, relic]);
 
   return { 
-      gold, targetGold, daysLeft, inventorySymbols, displaySlots, spin, setInventorySymbols,
-      X_count, equippedRelics, inventoryRelics, isRemoveMode,
-      addRelicToInventory, equipRelic, removeRelic, addX, toggleRemoveMode,
-      setGold, setTargetGold, setDaysLeft // 나중에 다음 스테이지로 넘어갈 때 쓰기 위해 추가
+      stage, gold, targetGold, daysLeft, inventorySymbols, displaySlots,
+      removeCount, spinCount, equippedRelics, isRemoveMode,
+      turnState, setTurnState, turnResults, turnTotal, effectResults, destroyedSlots,
+      spin, nextStage, restartGame, setInventorySymbols, removeSymbol, removeRelic, toggleRemoveMode, useReroll, addRelic
   };
 };
