@@ -60,7 +60,7 @@ const MainLayout = () => {
   if (screen === 'main') {
     return (
       <div className="game-layout" style={{ justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
-        <h1 style={{ fontSize: '4rem', color: '#fff', textShadow: '2px 2px #000' }}>랜덤 카드 모험</h1>
+        <h1 style={{ fontSize: '4rem', color: '#fff', textShadow: '2px 2px #000' }}>랜덤 카드 로그라이크</h1>
         <button className="btn-yellow pixel-border" style={{ fontSize: '2rem', width: '300px', margin: '10px' }} onClick={() => setScreen('game')}>게임 시작</button>
         <button className="btn-yellow pixel-border" style={{ fontSize: '2rem', width: '300px', margin: '10px' }} onClick={() => setScreen('dictionary')}>도감</button>
       </div>
@@ -151,7 +151,8 @@ const MainLayout = () => {
           choices={choices} 
           spinCount={engine.spinCount} 
           onReroll={handleReroll} 
-          onSelect={s => { engine.setInventorySymbols(p => [...p, createItem(s)]); setIsSymbolModalOpen(false); }} 
+          onSelect={s => { engine.setInventorySymbols(p => [...p, createItem(s)]); setIsSymbolModalOpen(false); }}
+          onItemClick={setDetailItem} 
         />
         
         {isInventoryModalOpen && (
@@ -179,7 +180,7 @@ const MainLayout = () => {
           </div></div>
         )}
 
-        <ItemDetailModal item={detailItem} isRelic={detailItem?.isRelic} onClose={() => setDetailItem(null)} />
+        <ItemDetailModal item={detailItem} isRelic={detailItem?.isRelic} onClose={() => setDetailItem(null)} onItemClick={setDetailItem} />
       </main>
 
       {/* 유물 패널에서 더이상 아이템 제거 기능이 필요 없으므로 isRemoveMode 관련 설정은 지워도 무방하지만 그대로 둬도 안전합니다 */}

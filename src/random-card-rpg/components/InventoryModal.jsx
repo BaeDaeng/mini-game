@@ -1,5 +1,6 @@
 // 인벤토리 모달
 import React from 'react';
+import DescriptionText from './DescriptionText';
 
 const InventoryModal = ({ isOpen, onClose, inventorySymbols, inventoryRelics, onEquipRelic, onItemClick }) => {
   if (!isOpen) return null;
@@ -21,7 +22,6 @@ const InventoryModal = ({ isOpen, onClose, inventorySymbols, inventoryRelics, on
                 onClick={() => onItemClick && onItemClick(s)}
               >
                 <div style={{ fontSize: '2rem', lineHeight: '1' }}>{s.name.split(' ')[0]}</div>
-                {/* 인벤토리에도 텍스트 및 레어도 색상 출력 */}
                 <div className={`rarity-${s.rarity}`} style={{ fontSize: '0.8rem', marginTop: '5px', fontWeight: 'bold', wordBreak: 'keep-all', lineHeight: '1.2' }}>
                   {s.name.split(' ').slice(1).join(' ')}
                 </div>
@@ -29,7 +29,6 @@ const InventoryModal = ({ isOpen, onClose, inventorySymbols, inventoryRelics, on
             ))}
           </div>
 
-          {/* 미장착 유물 목록 */}
           <h3 style={{ color: '#5a3c22', marginBottom: '10px' }}>보유 중인 유물</h3>
           {inventoryRelics.length === 0 ? (
             <div className="pixel-border" style={{ background: '#e2d1a7', padding: '15px', textAlign: 'center', color: '#5a3c22' }}>
@@ -45,15 +44,16 @@ const InventoryModal = ({ isOpen, onClose, inventorySymbols, inventoryRelics, on
                     onClick={() => onItemClick && onItemClick({ ...r, isRelic: true })}
                   >
                     <strong className={`rarity-${r.rarity}`} style={{ fontSize: '1.1rem', display: 'block', marginBottom: '5px' }}>{r.name}</strong>
-                    <span style={{ fontSize: '0.9rem', color: '#555' }}>{r.effect || r.desc}</span>
+                    <span style={{ fontSize: '0.9rem', color: '#555' }}>
+                      <DescriptionText text={r.effect || r.desc} onItemClick={onItemClick} />
+                    </span>
                   </div>
                   <button 
                     className="btn-yellow pixel-border" 
                     style={{ width: 'auto', padding: '8px 20px', marginLeft: '10px' }} 
                     onClick={(e) => { 
-                      e.stopPropagation(); // 장착 버튼 누를 땐 설명창 안 뜨게 막음
+                      e.stopPropagation(); 
                       onEquipRelic(idx); 
-                      onClose(); 
                     }}
                   >
                     장착

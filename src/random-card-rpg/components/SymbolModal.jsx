@@ -1,7 +1,8 @@
 // 턴 종료 후 심볼 선택 창, 스핀 기능
 import React from 'react';
+import DescriptionText from './DescriptionText';
 
-const SymbolModal = ({ isOpen, choices, onSelect, spinCount, onReroll }) => {
+const SymbolModal = ({ isOpen, choices, onSelect, spinCount, onReroll, onItemClick }) => {
   if (!isOpen) return null;
 
   return (
@@ -28,10 +29,10 @@ const SymbolModal = ({ isOpen, choices, onSelect, spinCount, onReroll }) => {
               
               <div style={{ fontSize: '0.9rem', color: '#111', background: '#fdf6e3', padding: '10px', borderRadius: '5px', flex: 1, border: '1px solid #e2d1a7' }}>
                 {symbol.gold !== undefined && <div style={{ marginBottom: '5px' }}><strong>💰 골드:</strong> {symbol.gold}개</div>}
-                {symbol.effect && <div style={{ marginBottom: '5px' }}><strong>✨ 효과:</strong> {symbol.effect}</div>}
-                {symbol.adjacent && <div style={{ marginBottom: '5px' }}><strong>↔️ 인접:</strong> {symbol.adjacent}</div>}
-                {symbol.destroy && <div style={{ marginBottom: '5px' }}><strong>💥 파괴:</strong> {symbol.destroy}</div>}
-                {symbol.lastWord && <div><strong>👻 유언:</strong> {symbol.lastWord}</div>}
+                {symbol.effect && <div style={{ marginBottom: '5px' }}><strong>✨ 효과:</strong> <DescriptionText text={symbol.effect} onItemClick={onItemClick} /></div>}
+                {symbol.adjacent && <div style={{ marginBottom: '5px' }}><strong>↔️ 인접:</strong> <DescriptionText text={symbol.adjacent} onItemClick={onItemClick} /></div>}
+                {symbol.destroy && <div style={{ marginBottom: '5px' }}><strong>💥 파괴:</strong> <DescriptionText text={symbol.destroy} onItemClick={onItemClick} /></div>}
+                {symbol.lastWord && <div><strong>👻 유언:</strong> <DescriptionText text={symbol.lastWord} onItemClick={onItemClick} /></div>}
               </div>
             </div>
           ))}
