@@ -6,13 +6,12 @@ const SlotGrid = ({ slots }) => {
   const displaySlots = [...slots, ...Array(Math.max(0, 20 - slots.length)).fill(null)];
 
   return (
-    <div className="slot-grid">
+    <div className="grid-frame pixel-border wooden-bg">
       {displaySlots.slice(0, 20).map((slot, index) => (
-        <div key={index} className="slot-item">
+        <div key={index} className="grid-item">
           {slot ? (
             <div className="symbol-wrapper" title={slot.desc}>
               <span className="symbol-icon">{slot.name.split(' ')[0]}</span>
-              {/* 이름 텍스트는 빼고 아이콘만 크게 보여주는 방식입니다 */}
             </div>
           ) : (
             <span style={{ opacity: 0.1 }}>?</span>

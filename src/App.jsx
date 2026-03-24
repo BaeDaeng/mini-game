@@ -16,7 +16,7 @@ import Puzzle2048 from './puzzle2048/index.jsx';
 import FourthWall from './fourthWall/index.jsx';
 import Tabacco from './tabacco/TabaccoRoom.jsx';
 import IzakayaApp from './izakaya/IzakayaApp.jsx';
-import RandomCardRpg from './random-card-rpg/GameMain.jsx';
+import RandomCardRpg from './random-card-rpg/components/MainLayout.jsx';
 import './App.css'; 
 
 // 메인 로비 화면 컴포넌트
