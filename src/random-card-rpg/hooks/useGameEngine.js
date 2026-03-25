@@ -46,7 +46,6 @@ export const useGameEngine = () => {
   const [spinCount, setSpinCount] = useState(1);     
   const [equippedRelics, setEquippedRelics] = useState([]);
   const [isRemoveMode, setIsRemoveMode] = useState(false);
-  const [baseGoldBonus, setBaseGoldBonus] = useState(0); 
   
   const [gameStats, setGameStats] = useState({ destroyedTrashBags: 0, destroyedTimeMages: 0, destroyedItems: 0 });
 
@@ -127,13 +126,12 @@ export const useGameEngine = () => {
     const blessPriestCount = currentInv.filter(s => s.id === 'bless_priest').length;
     const highBlessCount = currentInv.filter(s => ['zenaris_bless', 'agnes_bless', 'echidna_bless', 'lurutia_bless'].includes(s.id)).length;
     
-    // 가인의 축복: 각자가 가지고 있는 가인의 축복 개수만큼 골드를 주므로 제곱
     globalBonus += (cainCount * cainCount); 
     globalBonus += (blessPriestCount * highBlessCount * 2); 
 
     board.forEach((s, index) => { 
       if (!s) return;
-      let val = baseGoldBonus; 
+      let val = 0; 
       if (s.gold) val += s.gold; 
       
       if (s.id === 'fairy' && relicEffects.fairyShoes) val += 1;
@@ -196,7 +194,7 @@ export const useGameEngine = () => {
       setRelicResults(Array(currentRelics.length).fill(null));
       setTurnTotal(null);
 
-      const { effectResults: effResults, destroyedSlots: destSlots, itemsToAdd, uidsToRemove, stackUpdates, mutations, extraGold, extraRemoves, extraSpins, extraRelics, permGoldInc, lightSpiritEvents, itemsDestroyedThisTurn } = processBoardEffects(board, relicEffects);
+      const { effectResults: effResults, destroyedSlots: destSlots, itemsToAdd, uidsToRemove, stackUpdates, goldUpdates, mutations, extraGold, extraRemoves, extraSpins, extraRelics, lightSpiritEvents, itemsDestroyedThisTurn } = processBoardEffects(board, relicEffects);
 
       let finalExtraGold = extraGold;
       let finalExtraRemoves = extraRemoves;
@@ -281,7 +279,6 @@ export const useGameEngine = () => {
         if (finalExtraGold !== 0) setGold(g => g + finalExtraGold);
         if (finalExtraRemoves > 0) setRemoveCount(r => r + finalExtraRemoves);
         if (finalExtraSpins > 0) setSpinCount(s => s + finalExtraSpins);
-        if (permGoldInc > 0) setBaseGoldBonus(b => b + permGoldInc);
         if (extraRelics > 0) {
           for(let i=0; i<extraRelics; i++) setEquippedRelics(prev => [...prev, createItem(getRandomRelic(prev))]);
         }
@@ -291,6 +288,8 @@ export const useGameEngine = () => {
           nextInv = nextInv.map(item => {
             let n = { ...item };
             if (stackUpdates[item.uid] !== undefined) n.stacks = stackUpdates[item.uid];
+            // 십자가 영구 골드 업데이트 반영
+            if (goldUpdates[item.uid] !== undefined) n.gold = goldUpdates[item.uid];
             if (mutations[item.uid]) {
               const base = SYMBOLS.find(s => s.id === mutations[item.uid]);
               if (base) n = { ...base, uid: item.uid, stacks: 0, age: 0 };
@@ -338,7 +337,7 @@ export const useGameEngine = () => {
         return newDays;
       });
     }
-  }, [inventorySymbols, daysLeft, turnState, baseGoldBonus, equippedRelics, gameStats, targetGold]);
+  }, [inventorySymbols, daysLeft, turnState, equippedRelics, gameStats, targetGold]);
 
   const useReroll = () => { 
     if (spinCount > 0) { 
@@ -380,7 +379,6 @@ export const useGameEngine = () => {
     setRemoveCount(1);
     setSpinCount(1);
     setEquippedRelics([]);
-    setBaseGoldBonus(0);
     setGameStats({ destroyedTrashBags: 0, destroyedTimeMages: 0, destroyedItems: 0 });
     setTurnState('idle');
   };

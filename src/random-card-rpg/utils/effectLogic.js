@@ -7,13 +7,13 @@ export const processBoardEffects = (board, relicEffects) => {
   const itemsToAdd = [];
   const uidsToRemove = [];
   const stackUpdates = {};
+  const goldUpdates = {}; // 개별 아이템 영구 골드 상승용
   const mutations = {};
   
   let extraGold = 0;
   let extraRemoves = 0;
   let extraSpins = 0;
   let extraRelics = 0;
-  let permGoldInc = 0;
 
   let lightSpiritEvents = 0;
   let itemsDestroyedThisTurn = 0;
@@ -160,11 +160,9 @@ export const processBoardEffects = (board, relicEffects) => {
       }
     }
 
-    // 심연의 구슬 개선: 1개라도 인접 슬롯이 있고, 그 모든 인접 슬롯에 아이템이 꽉 차 있으면 발동
     if (item.id === 'abyss_orb') {
       if (adjs.length > 0 && adjs.every(a => board[a] !== null && !destroyedSlots[a])) destroyTarget(index, item);
     }
-    
     if (item.id === 'egg_thief') {
       const hasDragon = adjs.some(a => board[a] && ['dragon', 'hades'].includes(board[a].id));
       if (hasDragon) destroyTarget(index, item);
@@ -190,8 +188,14 @@ export const processBoardEffects = (board, relicEffects) => {
     if (item.id === 'mammon') tryDestroy(['believer', 'heretic', 'inquisitor', 'demon_worshiper'], (c) => { for(let i=0; i<c; i++) itemsToAdd.push('gold_ingot'); });
     if (item.id === 'demon_cult') tryDestroy(['heretic'], (c) => { for(let i=0; i<c; i++) { if(Math.random()<0.25) itemsToAdd.push('cain_curse'); } });
     
-    // 십자가 로직 보완: 가인의 저주 파괴 추가
-    if (item.id === 'cross') tryDestroy(['zenaris_curse', 'agnes_curse', 'echidna_curse', 'lurutia_curse', 'cain_curse'], (c) => { permGoldInc += c; addFloatingText(index, '영구 골드+1!'); });
+    // 십자가 로직 완벽 수정: 해당 십자가의 자체 영구 골드를 올려줌
+    if (item.id === 'cross') {
+      tryDestroy(['zenaris_curse', 'agnes_curse', 'echidna_curse', 'lurutia_curse', 'cain_curse'], (c) => {
+        const currentGold = item.gold !== undefined ? item.gold : 2; // 십자가 기본 골드는 2
+        goldUpdates[item.uid] = currentGold + c;
+        addFloatingText(index, `영구 골드+${c}!`);
+      });
+    }
     
     if (item.id === 'michael') tryDestroy(['imp', 'gargoyle', 'vampire', 'succubus'], (c) => { 
         const r = ['agnes_bless', 'echidna_bless', 'lurutia_bless'];
@@ -235,7 +239,6 @@ export const processBoardEffects = (board, relicEffects) => {
     }
   });
 
-  // --- 유언 판정 ---
   board.forEach((item, index) => {
     if (item && destroyedSlots[index]) {
       if (['slime', 'heretic', 'heal', 'vampire_essence'].includes(item.id)) { extraGold += 4; addFloatingText(index, '+ 💰 4'); }
@@ -272,5 +275,5 @@ export const processBoardEffects = (board, relicEffects) => {
     }
   });
 
-  return { effectResults, destroyedSlots, itemsToAdd, uidsToRemove, stackUpdates, mutations, extraGold, extraRemoves, extraSpins, extraRelics, permGoldInc, lightSpiritEvents, itemsDestroyedThisTurn };
+  return { effectResults, destroyedSlots, itemsToAdd, uidsToRemove, stackUpdates, goldUpdates, mutations, extraGold, extraRemoves, extraSpins, extraRelics, lightSpiritEvents, itemsDestroyedThisTurn };
 };

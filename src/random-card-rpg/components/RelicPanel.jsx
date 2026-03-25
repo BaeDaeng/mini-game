@@ -59,30 +59,31 @@ const RelicPanel = ({ equippedRelics, onRemoveRelic, isRemoveMode, onRelicClick,
               <div className={`relic-icon ${destroyedRelics[index] ? 'shake-and-fade' : ''}`} style={{ position: 'relative' }}>
                 {relic.name.split(' ')[0]}
                 
-                {/* 뱃지 UI */}
+                {/* 뱃지 UI (축소 비율 적용) */}
                 {badgeInfo && (
-                  <div className={badgeInfo.type === 'stack' ? 'stack-badge' : 'turn-badge'} style={{ top: '-5px', right: '-15px' }}>
+                  <div className={badgeInfo.type === 'stack' ? 'stack-badge' : 'turn-badge'} style={{ top: '-6px', right: '-10px', transform: 'scale(0.85)' }}>
                     {badgeInfo.text}
                   </div>
                 )}
               </div>
 
-              <div className="relic-info" style={{ marginLeft: '25px' }}>
-                <span className={`relic-name rarity-${relic.rarity}`} style={{ fontSize: '1.1rem' }}>
+              {/* 텍스트 크기와 여백 축소 */}
+              <div className="relic-info" style={{ marginLeft: '12px' }}>
+                <span className={`relic-name rarity-${relic.rarity}`} style={{ fontSize: '0.95rem', fontWeight: 'bold' }}>
                   {relic.name.split(' ').slice(1).join(' ')}
                 </span>
               </div>
 
               {/* 1단계: 유물 골드 플로팅 애니메이션 */}
               {relicResults[index] !== null && relicResults[index] !== undefined && (
-                <div className={`floating-number ${relicResults[index] > 0 ? 'floating-positive' : 'floating-negative'}`} style={{ left: '25px', top: '10px' }}>
+                <div className={`floating-number ${relicResults[index] > 0 ? 'floating-positive' : 'floating-negative'}`} style={{ left: '15px', top: '2px', fontSize: '1.2rem' }}>
                   {relicResults[index] > 0 ? `+${relicResults[index]}` : relicResults[index]}
                 </div>
               )}
 
               {/* 2단계: 파괴/효과 텍스트 연출 */}
               {relicEffectResults[index] && (
-                <div className="floating-effect" style={{ left: '25px' }}>
+                <div className="floating-effect" style={{ left: '20px', fontSize: '1rem' }}>
                   {relicEffectResults[index]}
                 </div>
               )}
