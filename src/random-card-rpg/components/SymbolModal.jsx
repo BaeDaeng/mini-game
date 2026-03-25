@@ -1,8 +1,8 @@
-// 턴 종료 후 심볼 선택 창, 스핀 기능
+// src/random-card-rpg/components/SymbolModal.jsx
 import React from 'react';
 import DescriptionText from './DescriptionText';
 
-const SymbolModal = ({ isOpen, choices, onSelect, spinCount, onReroll, onItemClick }) => {
+const SymbolModal = ({ isOpen, choices, onSelect, spinCount, onReroll, onItemClick, onSkip }) => {
   if (!isOpen) return null;
 
   return (
@@ -38,7 +38,11 @@ const SymbolModal = ({ isOpen, choices, onSelect, spinCount, onReroll, onItemCli
           ))}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
+        {/* 스킵 버튼 및 스핀 버튼 나란히 배치 */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '30px', gap: '15px' }}>
+          <button className="btn-yellow pixel-border" onClick={onSkip} style={{ fontSize: '1.2rem', padding: '12px 40px', background: '#ccc' }}>
+            ⏭️ 건너뛰기
+          </button>
           <button className="btn-yellow pixel-border" onClick={onReroll} disabled={spinCount <= 0} style={{ fontSize: '1.2rem', padding: '12px 40px' }}>
             🔄 스핀 (남은 횟수: {spinCount})
           </button>

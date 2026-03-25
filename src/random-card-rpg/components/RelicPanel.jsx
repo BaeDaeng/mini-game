@@ -1,100 +1,98 @@
-// 오른쪽 유물 영역
+// src/random-card-rpg/components/RelicPanel.jsx
 import React from 'react';
 
-const RelicPanel = ({ equippedRelics, onRemoveRelic, isRemoveMode, onRelicClick }) => {
+const getRelicBadge = (r) => {
+  if (!r) return null;
+  const age = r.age || 0;
+  const stacks = r.stacks || 0;
+
+  if (['trash_bag', 'time_mage'].includes(r.id)) return { text: `${stacks}/2`, type: 'stack' };
+  if (r.id === 'light_spirit') return { text: `${stacks}/3`, type: 'stack' };
+  if (r.id === 'trader') return { text: `${stacks}/3`, type: 'stack' };
+  
+  if (['bank', 'guild_safety', 'piggy_bank', 'nun', 'angel_bow'].includes(r.id)) return { text: `${age}/10`, type: 'turn' };
+  if (['trash_can', 'garbage_truck', 'novice_mage'].includes(r.id)) return { text: `${age}/5`, type: 'turn' };
+  if (r.id === 'guild_whistle') return { text: `${age}/8`, type: 'turn' };
+  if (r.id === 'great_demon_scroll') return { text: `${age}/3`, type: 'turn' };
+  if (r.id === 'greedy_rich') return { text: `${age}/1`, type: 'turn' };
+
+  return null;
+};
+
+const RelicPanel = ({ equippedRelics, onRemoveRelic, isRemoveMode, onRelicClick, relicResults = [], relicEffectResults = [], destroyedRelics = [] }) => {
   return (
     <aside className="right-panel">
-      {/* 유물 패널 헤더 */}
       <div 
         className="pixel-border" 
         style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          background: '#fdf6e3', 
-          padding: '10px 15px',
-          fontWeight: 'bold',
-          fontSize: '1.2rem'
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+          padding: '10px 15px', fontWeight: '800', fontSize: '1.2rem'
         }}
       >
         <span style={{ fontSize: '1.5rem', color: '#4da6ff' }}>🏺</span>
-        <span>유물</span>
+        <span>장착한 유물</span>
         <span style={{ fontSize: '1.5rem', cursor: 'pointer', color: '#d4af37' }}>⚙️</span>
       </div>
       
-      {/* 유물 목록 영역 */}
       <div 
         className="pixel-border" 
-        style={{ 
-          flex: 1, 
-          backgroundColor: '#fdf6e3', 
-          padding: '15px', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '10px',
-          overflowY: 'auto'
-        }}
+        style={{ flex: 1, padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto' }}
       >
         {equippedRelics.length === 0 && (
-          <div style={{ color: '#aaa', textAlign: 'center', marginTop: '20px', fontSize: '0.9rem' }}>
+          <div style={{ color: '#888', textAlign: 'center', marginTop: '20px', fontSize: '0.9rem', fontWeight: 'bold' }}>
             장착 중인 유물이 없습니다.
           </div>
         )}
 
-        {equippedRelics.map((relic, index) => (
-          <div 
-            key={index} 
-            className={`relic-item ${isRemoveMode ? 'remove-mode' : ''}`} 
-            onClick={() => {
-              // 제거 모드일 때는 유물 삭제, 아닐 때는 상세 정보창 띄우기
-              if (isRemoveMode) {
-                onRemoveRelic(index);
-              } else if (onRelicClick) {
-                onRelicClick(relic);
-              }
-            }}
-            style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                padding: '5px',
-                position: 'relative',
-                cursor: 'pointer'
-            }}
-          >
-            {/* 동그란 유물 아이콘 배경 */}
+        {equippedRelics.map((relic, index) => {
+          const badgeInfo = getRelicBadge(relic);
+          
+          return (
             <div 
-                className="relic-icon" 
-                style={{ 
-                    backgroundColor: '#cc7a6f', 
-                    borderRadius: '50%', 
-                    width: '45px', 
-                    height: '45px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    fontSize: '1.8rem',
-                    border: '2px solid #5a3c22',
-                    boxShadow: '1px 1px 0px rgba(0,0,0,0.2)'
-                }}
+              key={index} 
+              className={`relic-item ${isRemoveMode ? 'remove-mode' : ''}`} 
+              onClick={() => {
+                if (isRemoveMode) onRemoveRelic(index);
+                else if (onRelicClick) onRelicClick(relic);
+              }}
             >
-              {relic.name.split(' ')[0]}
-            </div>
-
-            {/* 유물 이름 */}
-            <div className="relic-info" style={{ marginLeft: '15px' }}>
-              <span className={`relic-name rarity-${relic.rarity}`} style={{ fontSize: '1.1rem' }}>
-                {relic.name.split(' ').slice(1).join(' ')}
-              </span>
-            </div>
-
-            {/* 유물 제거 모드 오버레이 */}
-            {isRemoveMode && (
-              <div className="remove-overlay" style={{ borderRadius: '8px', cursor: 'pointer' }}>
-                ❌
+              <div className={`relic-icon ${destroyedRelics[index] ? 'shake-and-fade' : ''}`} style={{ position: 'relative' }}>
+                {relic.name.split(' ')[0]}
+                
+                {/* 뱃지 UI */}
+                {badgeInfo && (
+                  <div className={badgeInfo.type === 'stack' ? 'stack-badge' : 'turn-badge'} style={{ top: '-5px', right: '-15px' }}>
+                    {badgeInfo.text}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        ))}
+
+              <div className="relic-info" style={{ marginLeft: '25px' }}>
+                <span className={`relic-name rarity-${relic.rarity}`} style={{ fontSize: '1.1rem' }}>
+                  {relic.name.split(' ').slice(1).join(' ')}
+                </span>
+              </div>
+
+              {/* 1단계: 유물 골드 플로팅 애니메이션 */}
+              {relicResults[index] !== null && relicResults[index] !== undefined && (
+                <div className={`floating-number ${relicResults[index] > 0 ? 'floating-positive' : 'floating-negative'}`} style={{ left: '25px', top: '10px' }}>
+                  {relicResults[index] > 0 ? `+${relicResults[index]}` : relicResults[index]}
+                </div>
+              )}
+
+              {/* 2단계: 파괴/효과 텍스트 연출 */}
+              {relicEffectResults[index] && (
+                <div className="floating-effect" style={{ left: '25px' }}>
+                  {relicEffectResults[index]}
+                </div>
+              )}
+
+              {isRemoveMode && (
+                <div className="remove-overlay">❌</div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </aside>
   );

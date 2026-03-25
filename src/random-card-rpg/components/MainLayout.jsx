@@ -1,4 +1,4 @@
-// 전체 레이아웃
+// src/random-card-rpg/components/MainLayout.jsx
 import React, { useState, useEffect } from 'react';
 import { useGameEngine, createItem } from '../hooks/useGameEngine';
 import { SYMBOLS, getRandomSymbol } from '../data/symbols';
@@ -9,18 +9,18 @@ import RelicPanel from './RelicPanel';
 import SymbolModal from './SymbolModal';
 import ItemDetailModal from './ItemDetailModal';
 import InventoryModal from './InventoryModal';
-import RemoveModal from './RemoveModal'; // 새로 추가된 아이템 제거 모달
+import RemoveModal from './RemoveModal';
 import '../GameStyle.css';
 
 const MainLayout = () => {
-  const [screen, setScreen] = useState('main'); 
+  const [screen, setScreen] = useState('main');
   const engine = useGameEngine();
-  
+
   const [isSymbolModalOpen, setIsSymbolModalOpen] = useState(false);
   const [isRelicModalOpen, setIsRelicModalOpen] = useState(false);
   const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
-  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false); // 제거 모달 상태 추가
-  
+  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
+
   const [choices, setChoices] = useState([]);
   const [relicChoices, setRelicChoices] = useState([]);
   const [detailItem, setDetailItem] = useState(null);
@@ -31,20 +31,23 @@ const MainLayout = () => {
 
   useEffect(() => {
     if (engine.turnState === 'finished') {
-      engine.setTurnState('idle'); 
-      
+      engine.setTurnState('idle');
+
       if (engine.daysLeft <= 0) {
         if (engine.gold >= engine.targetGold) {
           engine.nextStage();
           setRelicChoices([getRandomRelic(engine.equippedRelics)]);
           setIsRelicModalOpen(true);
         } else {
-          alert("파산했습니다. 처음부터 다시 시작합니다.");
-          engine.restartGame();
-          setScreen('main');
+          alert("파산했습니다. 처음 화면으로 돌아갑니다.");
+          setScreen('main'); // 게임 오버 시 난이도를 다시 고를 수 있게 메인 화면으로 이동
         }
       } else {
-        setChoices([getRandomSymbol(engine.stage), getRandomSymbol(engine.stage), getRandomSymbol(engine.stage)]);
+        setChoices([
+          getRandomSymbol(engine.stage, engine.inventorySymbols),
+          getRandomSymbol(engine.stage, engine.inventorySymbols),
+          getRandomSymbol(engine.stage, engine.inventorySymbols)
+        ]);
         setIsSymbolModalOpen(true);
       }
     }
@@ -53,16 +56,38 @@ const MainLayout = () => {
 
   const handleReroll = () => {
     if (engine.useReroll()) {
-      setChoices([getRandomSymbol(engine.stage), getRandomSymbol(engine.stage), getRandomSymbol(engine.stage)]);
+      setChoices([
+        getRandomSymbol(engine.stage, engine.inventorySymbols), 
+        getRandomSymbol(engine.stage, engine.inventorySymbols), 
+        getRandomSymbol(engine.stage, engine.inventorySymbols)
+      ]);
     }
+  };
+
+  const handleStartGame = (difficultyMult) => {
+    engine.startGame(difficultyMult);
+    setScreen('game');
   };
 
   if (screen === 'main') {
     return (
       <div className="game-layout" style={{ justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
-        <h1 style={{ fontSize: '4rem', color: '#fff', textShadow: '2px 2px #000' }}>랜덤 카드 로그라이크</h1>
-        <button className="btn-yellow pixel-border" style={{ fontSize: '2rem', width: '300px', margin: '10px' }} onClick={() => setScreen('game')}>게임 시작</button>
+        <h1 style={{ fontSize: '4rem', color: '#fff', textShadow: '2px 2px #000', marginBottom: '20px' }}>랜덤 카드 모험</h1>
+        <button className="btn-yellow pixel-border" style={{ fontSize: '2rem', width: '300px', margin: '10px' }} onClick={() => setScreen('difficulty')}>게임 시작</button>
         <button className="btn-yellow pixel-border" style={{ fontSize: '2rem', width: '300px', margin: '10px' }} onClick={() => setScreen('dictionary')}>도감</button>
+      </div>
+    );
+  }
+
+  // ⭐️ 추가된 난이도 선택 화면
+  if (screen === 'difficulty') {
+    return (
+      <div className="game-layout" style={{ justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+        <h1 style={{ fontSize: '3rem', color: '#fff', textShadow: '2px 2px #000', marginBottom: '30px' }}>난이도 선택</h1>
+        <button className="btn-yellow pixel-border" style={{ fontSize: '2rem', width: '400px', margin: '10px' }} onClick={() => handleStartGame(1)}>🌱 일반 (목표 1배)</button>
+        <button className="btn-yellow pixel-border" style={{ fontSize: '2rem', width: '400px', margin: '10px' }} onClick={() => handleStartGame(1.25)}>⚔️ 숙련 (목표 1.25배)</button>
+        <button className="btn-yellow pixel-border" style={{ fontSize: '2rem', width: '400px', margin: '10px' }} onClick={() => handleStartGame(1.5)}>🔥 고수 (목표 1.5배)</button>
+        <button className="btn-yellow pixel-border" style={{ fontSize: '1.5rem', width: '200px', margin: '30px 10px 10px 10px', background: '#ccc' }} onClick={() => setScreen('main')}>돌아가기</button>
       </div>
     );
   }
@@ -89,32 +114,31 @@ const MainLayout = () => {
             </div>
           ))}
         </div>
-        <ItemDetailModal item={detailItem} isRelic={detailItem?.isRelic} onClose={() => setDetailItem(null)} />
+        <ItemDetailModal item={detailItem} isRelic={detailItem?.isRelic} onClose={() => setDetailItem(null)} onItemClick={setDetailItem} />
       </div>
     );
   }
 
   return (
     <div className="game-layout">
-      {/* 왼쪽 패널에 제거 팝업 열기 연결 */}
-      <LeftPanel 
-        {...engine} 
-        onOpenInventory={() => setIsInventoryModalOpen(true)} 
+      <LeftPanel
+        {...engine}
+        onOpenInventory={() => setIsInventoryModalOpen(true)}
         onOpenRemoveModal={() => setIsRemoveModalOpen(true)}
       />
-      
+
       <main className="center-grid">
         <div className="scroll-wrapper pixel-border">
           <div style={{ position: 'absolute', top: '-15px', left: '20px', background: '#5a3c22', color: 'white', padding: '5px 15px', fontWeight: 'bold' }}>STAGE {engine.stage}</div>
-          
-          <SlotGrid 
-            slots={engine.displaySlots} 
-            onSlotClick={item => setDetailItem(item)} 
-            turnResults={engine.turnResults} 
+
+          <SlotGrid
+            slots={engine.displaySlots}
+            onSlotClick={item => setDetailItem(item)}
+            turnResults={engine.turnResults}
             effectResults={engine.effectResults}
             destroyedSlots={engine.destroyedSlots}
           />
-          
+
           {engine.turnTotal !== null && (
             <div style={{
               position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
@@ -126,46 +150,46 @@ const MainLayout = () => {
             </div>
           )}
         </div>
-        
-        <button 
-          className="btn-yellow btn-center pixel-border" 
-          onClick={handleSpinClick} 
+
+        <button
+          className="btn-yellow btn-center pixel-border"
+          onClick={handleSpinClick}
           disabled={engine.daysLeft <= 0 || engine.turnState !== 'idle'}
         >
           섞기
         </button>
 
-        {/* 제거 전용 모달 연결 */}
         {isRemoveModalOpen && (
-          <RemoveModal 
-            isOpen={isRemoveModalOpen} 
-            onClose={() => setIsRemoveModalOpen(false)} 
+          <RemoveModal
+            isOpen={isRemoveModalOpen}
+            onClose={() => setIsRemoveModalOpen(false)}
             inventorySymbols={engine.inventorySymbols}
             removeCount={engine.removeCount}
             onRemove={engine.removeSymbol}
           />
         )}
 
-        <SymbolModal 
-          isOpen={isSymbolModalOpen} 
-          choices={choices} 
-          spinCount={engine.spinCount} 
-          onReroll={handleReroll} 
+        <SymbolModal
+          isOpen={isSymbolModalOpen}
+          choices={choices}
+          spinCount={engine.spinCount}
+          onReroll={handleReroll}
           onSelect={s => { engine.setInventorySymbols(p => [...p, createItem(s)]); setIsSymbolModalOpen(false); }}
-          onItemClick={setDetailItem} 
+          onItemClick={setDetailItem}
+          onSkip={() => setIsSymbolModalOpen(false)}
         />
-        
+
         {isInventoryModalOpen && (
-          <InventoryModal 
-            isOpen={isInventoryModalOpen} 
+          <InventoryModal
+            isOpen={isInventoryModalOpen}
             onClose={() => setIsInventoryModalOpen(false)}
             inventorySymbols={engine.inventorySymbols}
             inventoryRelics={engine.inventoryRelics || []}
             onEquipRelic={engine.equipRelic}
-            onItemClick={setDetailItem} 
+            onItemClick={setDetailItem}
           />
         )}
-        
+
         {isRelicModalOpen && (
           <div className="modal-overlay open"><div className="modal-content">
             <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>스테이지 클리어 보상 (유물)</h2>
@@ -183,12 +207,14 @@ const MainLayout = () => {
         <ItemDetailModal item={detailItem} isRelic={detailItem?.isRelic} onClose={() => setDetailItem(null)} onItemClick={setDetailItem} />
       </main>
 
-      {/* 유물 패널에서 더이상 아이템 제거 기능이 필요 없으므로 isRemoveMode 관련 설정은 지워도 무방하지만 그대로 둬도 안전합니다 */}
-      <RelicPanel 
-        equippedRelics={engine.equippedRelics} 
-        onRelicClick={r => setDetailItem({ ...r, isRelic: true })} 
+      <RelicPanel
+        equippedRelics={engine.equippedRelics}
+        onRelicClick={r => setDetailItem({ ...r, isRelic: true })}
         isRemoveMode={engine.isRemoveMode}
         onRemoveRelic={engine.removeRelic}
+        relicResults={engine.relicResults}
+        relicEffectResults={engine.relicEffectResults}
+        destroyedRelics={engine.destroyedRelics}
       />
     </div>
   );

@@ -1,8 +1,7 @@
-// 인벤토리 모달
 import React from 'react';
 import DescriptionText from './DescriptionText';
 
-const InventoryModal = ({ isOpen, onClose, inventorySymbols, inventoryRelics, onEquipRelic, onItemClick }) => {
+const InventoryModal = ({ isOpen, onClose, inventorySymbols, onItemClick }) => {
   if (!isOpen) return null;
 
   return (
@@ -12,8 +11,9 @@ const InventoryModal = ({ isOpen, onClose, inventorySymbols, inventoryRelics, on
         
         <div className="inventory-list" style={{ textAlign: 'left' }}>
           
+          {/* 심볼(아이템) 덱 목록만 남김 */}
           <h3 style={{ color: '#5a3c22', marginBottom: '10px' }}>보유 중인 덱 (총 {inventorySymbols.length}장)</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', marginBottom: '30px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', marginBottom: '10px' }}>
             {inventorySymbols.map((s, idx) => (
               <div 
                 key={idx} 
@@ -29,42 +29,9 @@ const InventoryModal = ({ isOpen, onClose, inventorySymbols, inventoryRelics, on
             ))}
           </div>
 
-          <h3 style={{ color: '#5a3c22', marginBottom: '10px' }}>보유 중인 유물</h3>
-          {inventoryRelics.length === 0 ? (
-            <div className="pixel-border" style={{ background: '#e2d1a7', padding: '15px', textAlign: 'center', color: '#5a3c22' }}>
-              인벤토리에 유물이 없습니다.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {inventoryRelics.map((r, idx) => (
-                <div key={idx} className="inventory-item pixel-border" style={{ background: '#e2d1a7', padding: '10px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div 
-                    className="inventory-info" 
-                    style={{ cursor: 'pointer', flex: 1 }}
-                    onClick={() => onItemClick && onItemClick({ ...r, isRelic: true })}
-                  >
-                    <strong className={`rarity-${r.rarity}`} style={{ fontSize: '1.1rem', display: 'block', marginBottom: '5px' }}>{r.name}</strong>
-                    <span style={{ fontSize: '0.9rem', color: '#555' }}>
-                      <DescriptionText text={r.effect || r.desc} onItemClick={onItemClick} />
-                    </span>
-                  </div>
-                  <button 
-                    className="btn-yellow pixel-border" 
-                    style={{ width: 'auto', padding: '8px 20px', marginLeft: '10px' }} 
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      onEquipRelic(idx); 
-                    }}
-                  >
-                    장착
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
         
-        <button className="btn-yellow pixel-border" onClick={onClose} style={{ marginTop: '30px', width: '100%' }}>닫기</button>
+        <button className="btn-yellow pixel-border" onClick={onClose} style={{ marginTop: '20px', width: '100%' }}>닫기</button>
       </div>
     </div>
   );

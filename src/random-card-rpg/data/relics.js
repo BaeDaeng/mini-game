@@ -1,4 +1,5 @@
-// 유물 데이터
+// src/random-card-rpg/data/relics.js
+
 export const RELICS = [
   { id: 'fairy_shoes', name: '🥿 요정 구두', rarity: 'common', effect: '(요정)이 골드 1개를 추가 제공' },
   { id: 'lucky_coin', name: '🍀 행운의 코인', rarity: 'common', effect: '스핀마다 골드 1개를 제공' },
@@ -8,11 +9,57 @@ export const RELICS = [
   { id: 'antique_collector', name: '🔎 골동품 수집가', rarity: 'common', effect: '유물이 5개 이상 있을 시 스핀마다 골드 2개를 제공' },
   { id: 'trash_bag', name: '🗑️ 쓰레기 봉투', rarity: 'common', effect: '(제거) 사용 시 소멸 스택이 누적, 소멸 스택이 2번 쌓이면 스핀 후 자신을 파괴, 파괴되면 골드 12개를 제공' },
   { id: 'c_guild_badge', name: '🎖️ C급 길드 뱃지', rarity: 'common', effect: '(프리스트)가 골드 1개를 추가 제공' },
-  { id: 'time_mage', name: '⏳ 시간 술사', rarity: 'common', effect: '(스핀) 사용 시 되돌리기 스택이 누적, 되돌리기 스택이 2번 쌓이면 스핀 후 자신을 파괴, 파괴되면 골드 12개를 제공' }
+  { id: 'time_mage', name: '⏳ 시간 술사', rarity: 'common', effect: '(스핀) 사용 시 되돌리기 스택이 누적, 되돌리기 스택이 2번 쌓이면 스핀 후 자신을 파괴, 파괴되면 골드 12개를 제공' },
+  { id: 'grave_keeper', name: '🪦 무덤 지기', rarity: 'common', effect: '(묘), (공동 묘지)가 골드 1개를 추가 제공' },
+  { id: 'trash_can', name: '🗑️ 쓰레기통', rarity: 'common', effect: '스핀마다 골드 1개를 제공 5번 스핀 후 자신을 파괴, 파괴되면 (제거)를 추가' },
+  { id: 'believer_prayer', name: '🙏 신자의 기도', rarity: 'common', effect: '(기도)가 (가인의 축복)으로 변할 확률이 3배 증가' },
+  { id: 'elder_elf', name: '🧝 원로 엘프', rarity: 'common', effect: '(엘프)가 (엘프 족장)으로 진화 할 확률이 2배 증가' },
+  { id: 'bonus', name: '🎁 보너스', rarity: 'common', effect: '스핀 후 획득한 골드가 20 골드 이하이면 골드 2개를 제공' },
+  { id: 'guild_safety', name: '🦺 길드 안전수칙', rarity: 'common', effect: '10번 스핀 후 자신을 파괴, 파괴되면 골드 15개를 제공' },
+  { id: 'lucky_statue', name: '🗽 행운의 석상', rarity: 'rare', effect: '스핀 마다 골드 2개를 제공' },
+  { id: 'lich_spellbook', name: '📖 리치의 마법책', rarity: 'rare', effect: '(묘), (공동 묘지), (스켈레톤)을 매 스핀마다 25% 확률로 파괴' },
+  { id: 'elder_dragon', name: '🐉 원로 용', rarity: 'rare', effect: '(엘프), (드워프) 파괴 시 골드 3개를 추가 제공' },
+  { id: 'garbage_bin', name: '🚮 쓰레기 수거함', rarity: 'rare', effect: '게임 내에서 (쓰레기 봉투)를 파괴한 횟수당 스핀마다 골드 1개를 제공' },
+  { id: 'novice_wand', name: '🪄 풋내기 마법사의 지팡이', rarity: 'rare', effect: '게임 내에서 (시간 술사)를 파괴한 횟수당 스핀마다 골드 1개를 제공' },
+  { id: 'b_guild_badge', name: '🥈 B급 길드 뱃지', rarity: 'rare', effect: '(프리스트)가 골드 2개를 추가 제공' },
+  { id: 'double_bonus', name: '🎊 더블 보너스', rarity: 'rare', effect: '스핀 후 획득한 골드가 45골드 이하이면 골드 3개를 제공' },
+  { id: 'hammer', name: '🔨 해머', rarity: 'rare', effect: '아이템 파괴 시 10% 확률로 골드 3개를 제공' },
+  { id: 'garbage_truck', name: '🚛 쓰레기 차', rarity: 'rare', effect: '스핀마다 골드 3개를 제공, 5번 스핀 후 자신을 파괴, 파괴되면 (제거)를 추가' },
+  { id: 'guild_whistle', name: '🪈 길드 호루라기', rarity: 'rare', effect: '8번 스핀 후 자신을 파괴, 파괴되면 골드 20개를 재공' },
+  { id: 'training', name: '⚔️ 훈련', rarity: 'rare', effect: '(프리스트)가 아이템 파괴 시 골드 4개를 추가 제공' },
+  { id: 'colorless_orb', name: '⚪ 무채색 구슬', rarity: 'rare', effect: '4개의 꼭짓점에 각각 아이템이 4개가 다 있을시에 골드 3개를 제공' },
+  { id: 'lich', name: '🧙‍♂️ 리치', rarity: 'special', effect: '(언데드)가 더이상 파괴되지 않음' },
+  { id: 'dragon_trainer', name: '🐲 용 조련사', rarity: 'special', effect: '(용의 알), (새끼 용), (황금 새끼 용)의 진화 할 확률이 2.5배 증가' },
+  { id: 'aristocrat', name: '🎩 귀족', rarity: 'special', effect: '보스를 처치하지 못할 시 해당 유물을 파괴하고 스핀 기회를 한번 더 제공' },
+  { id: 'lucky_charm', name: '🧿 행운의 부적', rarity: 'special', effect: '스핀마다 골드 3개를 제공' },
+  { id: 'novice_mage', name: '🧙‍♀️ 풋내기 마법사', rarity: 'special', effect: '스핀마다 골드 5개를 제공, 5번 스핀 후 자신을 파괴, 파괴되면 (스핀)을 2개 추가' },
+  { id: 'a_guild_badge', name: '🥇 A급 길드 뱃지', rarity: 'special', effect: '(프리스트)가 골드 3개를 추가 제공' },
+  { id: 'belial', name: '👿 벨리알', rarity: 'special', effect: '(제나리스의 저주), (아그네스의 저주), (에키드나의 저주), (루리티아의 저주), (가인의 저주)의 효과가 더 이상 발생하지 않음' },
+  { id: 'piggy_bank', name: '🐷 돼지 저금통', rarity: 'special', effect: '스피마다 골드 -3개를 제공, 10번 스핀 후 자신을 파괴, 파괴되면 골드 100개를 제공' },
+  { id: 'training_sandbag', name: '🥊 훈련용 샌드백', rarity: 'special', effect: '인벤토리에 아이템이 30개 이상 있을 시 골드 5개를 제공' },
+  { id: 'greedy_rich', name: '🤑 욕심 많은 부자', rarity: 'special', effect: '해당 유물 추가 시 다음 스핀 후 골드 30개를 제공' },
+  { id: 'destroyer', name: '💣 파괴자', rarity: 'legendary', effect: '게임 내에서 아이템을 8번 파괴한 횟수당 스핀마다 골드 1개를 추가 제공' },
+  { id: 'dragon_knight', name: '🗡️ 용기사', rarity: 'legendary', effect: '(새끼 용), (황금 새끼 용), (용), (하데스)가 골드 2배를 추가 제공' },
+  { id: 'lucky_sword', name: '⚔️ 행운의 검', rarity: 'legendary', effect: '스핀마다 골드 4개를 제공' },
+  { id: 'gods_grace', name: '✨ 신의 은총', rarity: 'legendary', effect: '유물 2개당 스핀마다 골드 1개를 제공' },
+  { id: 'high_believers', name: '🛐 고위 신도들', rarity: 'legendary', effect: '(제나리스의 축복)이 골드 4개를 추가 제공' },
+  { id: 'nun', name: '🧕 수녀', rarity: 'common', effect: '10번 스핀 후 자신을 파괴, 파괴되면 (아그네스의 축복)을 추가' },
+  { id: 'bible', name: '📖 성서', rarity: 'rare', effect: '(대축복)이 골드 2개를 추가 제공' },
+  { id: 'vampire_lord', name: '🧛‍♂️ 뱀파이어 로드', rarity: 'common', effect: '(뱀파이어), (뱀파이어의 정수)가 골드 1개를 추가 제공' },
+  { id: 'charm_ring', name: '💍 매혹의 반지', rarity: 'rare', effect: '(유혹된 프리스트), (서큐버스)가 골드 2개를 추가 제공' },
+  { id: 'demon_crest', name: '纹 악마 문양', rarity: 'common', effect: '(아그네스의 저주), (에키드나의 저주)가 골드 1개를 추가 제공' },
+  { id: 'gold_necklace', name: '📿 금 목걸이', rarity: 'rare', effect: '(금), (마몬)이 골드 2개를 추가 제공' },
+  { id: 'angel_bow', name: '🏹 천사의 활', rarity: 'common', effect: '10번 스핀 후 자신을 파괴, 파괴되면 (천사)를 추가' },
+  { id: 'constellation', name: '🌌 별자리', rarity: 'rare', effect: '(천사), (가브리엘)이 골드 1개를 추가 제공' },
+  { id: 'evangelist', name: '📢 전도사', rarity: 'common', effect: '(이단자)가 골드 1개를 추가 제공' },
+  { id: 'bishop', name: '📿 주교', rarity: 'common', effect: '(신자), (교회)가 골드 1개를 추가 제공' },
+  { id: 'light_spirit', name: '🧚‍♀️ 빛의 정령', rarity: 'special', effect: '(제나리스의 축복), (아그네스의 축복), (에키드나의 축복)이 변하거나 파괴될 시 고위 스택이 누적, 고위 스택이 3번 쌓이면 자신을 파괴, 파괴되면 (루리티아의 축복) 2개 추가' },
+  { id: 'great_demon_scroll', name: '📜 대 악마 소환서', rarity: 'legendary', effect: '3번 스핀 후 자신을 파괴, 파괴되면 (사탄)을 추가' }
 ];
 
-export const getRandomRelic = (ownedRelics = []) => {
-  const available = RELICS.filter(r => !ownedRelics.some(owned => owned.id === r.id));
-  if (available.length === 0) return RELICS[0]; // 모두 가졌을 경우 예외처리
+export const getRandomRelic = (equippedRelics = []) => {
+  // 현재 장착 중인 유물은 등장하지 않도록 필터링 (파괴되어 배열에서 빠진 유물은 다시 등장 가능)
+  const available = RELICS.filter(r => !equippedRelics.some(owned => owned.id === r.id));
+  if (available.length === 0) return RELICS[0]; 
   return available[Math.floor(Math.random() * available.length)];
 };
