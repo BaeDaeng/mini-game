@@ -1,0 +1,65 @@
+.find-mine-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: sans-serif;
+  margin-top: 20px;
+}
+
+.board {
+  display: grid;
+  gap: 2px;
+  background-color: #444;
+  padding: 4px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.cell {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.1s;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-sizing: border-box;
+}
+
+.cell:hover {
+  filter: brightness(1.1);
+}
+
+/* 열린 칸의 스타일 */
+.cell.revealed {
+  border: 1px inset rgba(0, 0, 0, 0.2);
+}
+
+.cell.revealed.safe {
+  filter: brightness(0.85); /* 지뢰가 아닌 열린 칸은 살짝 어둡게 */
+}
+
+.status {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  min-height: 30px;
+}
+
+.reset-btn {
+  margin-top: 15px;
+  padding: 8px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+}
+
+.reset-btn:hover {
+  background-color: #0056b3;
+}
