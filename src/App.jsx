@@ -18,6 +18,7 @@ import Tabacco from './tabacco/TabaccoRoom.jsx';
 import IzakayaApp from './izakaya/IzakayaApp.jsx';
 import RandomCardRpg from './random-card-rpg/components/MainLayout.jsx';
 import FindMine from './find-mine/FindMine.jsx';
+import InventoryPuzzle from './inventory-puzzle/GameStart.jsx';
 import './App.css'; 
 
 // 메인 로비 화면 컴포넌트
@@ -44,6 +45,7 @@ const MainLobby = () => {
     { path: '/izakaya', title: '이자카야', icon: '🍻', img: '/images/izakaya.png', color: '#5c3202' },
     { path: '/randomcardrpg', title: '랜덤카드RPG', icon: '📇', img: '/images/random-card-rpg.png', color: '#30680f', disabled: true },
     { path: '/findmine', title: '색상 지뢰 찾기', icon: '💣', img: '/images/find-mine.png', color: '#589aaa', disabled: true },
+    { path: '/inventorypuzzle', title: '인벤토리 로그라이크', icon: '💼', img: '/images/inventory-puzzle.png', color: '#812b03', disabled: true },
   ];
 
   return (
@@ -94,7 +96,7 @@ const MainLobby = () => {
       </div>
 
       <footer className="vapor-footer">
-        <div className="coord">latest update 26.03.26</div>
+        <div className="coord">latest update 26.03.27</div>
         <div className="warning">🔖BAEJAEHUN</div>
       </footer>
     </div>
@@ -125,6 +127,7 @@ const App = () => {
         <Route path="/izakaya" element={<IzakayaApp />} />
         <Route path="/randomcardrpg" element={<RandomCardRpg />} />
         <Route path="/findmine" element={<FindMine />} />
+        <Route path="/inventorypuzzle" element={<InventoryPuzzle />} />
       </Routes>
     </Router>
   );
