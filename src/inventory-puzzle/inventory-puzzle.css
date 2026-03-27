@@ -1,19 +1,32 @@
-/* 전체 게임 컨테이너 */
+/* =========================================
+   전체 게임 컨테이너 (mini-game CSS 완벽 차단)
+   ========================================= */
 .puzzle-container {
-  display: flex;
-  gap: 1.5rem;
-  padding: 1rem;
-  background-color: #111827;
-  color: #e5e7eb;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  /* 🌟 화면 전체 고정 및 외부 CSS 무효화 */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important; 
+  background-color: #111827 !important;
+  color: #e5e7eb !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  z-index: 99999 !important;
+  box-sizing: border-box !important;
   
-  /* 🌟 핵심 1: 화면 크기를 무조건 브라우저 창 크기에 맞추고 밖으로 나가는 건 숨김 (브라우저 스크롤 차단) */
-  height: 100vh; 
-  overflow: hidden; 
-  box-sizing: border-box;
-  justify-content: center;
+  padding: 4rem 6rem !important; 
 
-  /* 드래그 튐 방지 */
+  display: flex !important;
+  flex-direction: row !important; 
+  flex-wrap: nowrap !important;
+  justify-content: center !important;
+  align-items: stretch !important; 
+  gap: 2rem !important;
+
+  text-align: left !important;
+  overflow: hidden !important;
+  
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -32,7 +45,9 @@ h2 {
   padding-bottom: 0.5rem;
 }
 
-/* 1. 배낭 영역 */
+/* =========================================
+   1. 왼쪽: 가방(Inventory) 패널
+   ========================================= */
 .inventory-panel {
   display: flex;
   flex-direction: column;
@@ -46,6 +61,7 @@ h2 {
   box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
 }
 
+/* 🌟 다시 50px 오리지널 크기로 복구 */
 .grid-cell {
   width: 50px;
   height: 50px;
@@ -56,23 +72,24 @@ h2 {
 
 .grid-cell.obstacle {
   background-color: #000;
-  background-image: repeating-linear-gradient(45deg, #1a1a1a 25%, transparent 25%, transparent 75%, #1a1a1a 75%, #1a1a1a), repeating-linear-gradient(45deg, #1a1a1a 25%, #000 25%, #000 75%, #1a1a1a 75%, #1a1a1a);
+  background-image: repeating-linear-gradient(45deg, #1a1a1a 25%, transparent 25%, transparent 75%, #1a1a1a 75%, #1a1a1a), 
+                    repeating-linear-gradient(45deg, #1a1a1a 25%, #000 25%, #000 75%, #1a1a1a 75%, #1a1a1a);
   background-position: 0 0, 10px 10px;
   background-size: 20px 20px;
 }
 
-/* 2. 대기열(선택지) 영역 */
+/* =========================================
+   2. 중앙-좌측: 전리품 및 대기열(Queue) 패널
+   ========================================= */
+/* 🌟 원래 너비(250px)로 복구 */
 .draft-panel {
   background-color: #1f2937;
   padding: 1.5rem;
   border: 2px solid #374151;
   border-radius: 8px;
-  width: 250px;
+  width: 250px; 
   display: flex;
   flex-direction: column;
-  
-  /* 🌟 핵심 2: 부모(화면 전체) 크기 이상으로 커지지 않게 제한 */
-  max-height: 100%; 
 }
 
 .draft-options {
@@ -96,13 +113,10 @@ h2 {
 }
 .draft-card:hover { border-color: #4ade80; background-color: #4b5563; }
 
-/* 🌟 Queue 내부 박스 스크롤 설정 */
 .queue-container {
-  /* 플렉스박스 내부에서 남는 공간을 모두 차지하되, 넘치면 줄어들도록 설정 */
   flex: 1 1 0; 
-  min-height: 0; /* 강제로 부모창을 늘리는 현상 방지 */
-  overflow-y: auto; /* 내용이 넘치면 이 안에서만 세로 스크롤 생성 */
-  
+  min-height: 0; 
+  overflow-y: auto; 
   background-color: #111827;
   padding: 1rem;
   border-radius: 4px;
@@ -111,29 +125,34 @@ h2 {
   gap: 15px;
 }
 
-/* 🌟 택티컬 커스텀 스크롤바 디자인 (크롬, 엣지, 사파리 적용) */
-.queue-container::-webkit-scrollbar {
-  width: 8px;
-}
-.queue-container::-webkit-scrollbar-track {
-  background: #111827;
-  border-radius: 4px;
-}
-.queue-container::-webkit-scrollbar-thumb {
-  background: #4b5563;
-  border-radius: 4px;
-}
-.queue-container::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+.queue-container::-webkit-scrollbar { width: 8px; }
+.queue-container::-webkit-scrollbar-track { background: #111827; border-radius: 4px; }
+.queue-container::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+.queue-container::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+/* =========================================
+   3. 중앙-우측: 아이템 정보(Info) 패널
+   ========================================= */
+.info-panel {
+  background-color: #1f2937;
+  padding: 1.5rem;
+  border: 2px solid #374151;
+  border-radius: 8px;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
 }
 
-/* 3. 전투 영역 */
+/* =========================================
+   4. 우측: 전투(Combat) 패널
+   ========================================= */
+/* 🌟 원래 너비(400px)로 복구 */
 .combat-panel {
   background-color: #1f2937;
   padding: 1.5rem;
   border: 2px solid #374151;
   border-radius: 8px;
-  width: 400px;
+  width: 400px; 
   display: flex;
   flex-direction: column;
   max-height: 100%;
@@ -156,6 +175,7 @@ h2 {
   gap: 10px;
 }
 
+/* 🌟 캐릭터 오리지널 크기(80px) 복구 */
 .shape-player { width: 80px; height: 80px; background-color: #3b82f6; border-radius: 8px; }
 .shape-enemy { width: 80px; height: 80px; background-color: #ef4444; border-radius: 50%; }
 
@@ -174,7 +194,7 @@ h2 {
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s;
-  margin-top: auto; /* 버튼을 항상 맨 아래로 밀어냄 */
+  margin-top: auto; 
 }
 .btn-end-turn:hover { background-color: #22c55e; }
 .btn-end-turn:disabled { background-color: #4b5563; color: #9ca3af; cursor: not-allowed; }
@@ -189,14 +209,3 @@ h2 {
 }
 .msg-victory { background-color: rgba(74, 222, 128, 0.2); color: #4ade80; }
 .msg-defeat { background-color: rgba(248, 113, 113, 0.2); color: #f87171; }
-
-/* 🌟 아이템 정보 패널 */
-.info-panel {
-  background-color: #1f2937;
-  padding: 1.5rem;
-  border: 2px solid #374151;
-  border-radius: 8px;
-  width: 200px; /* 창 크기 고정 */
-  display: flex;
-  flex-direction: column;
-}
