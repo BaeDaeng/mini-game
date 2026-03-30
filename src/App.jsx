@@ -96,7 +96,7 @@ const MainLobby = () => {
       </div>
 
       <footer className="vapor-footer">
-        <div className="coord">latest update 26.03.27</div>
+        <div className="coord">latest update 26.03.30</div>
         <div className="warning">🔖BAEJAEHUN</div>
       </footer>
     </div>
