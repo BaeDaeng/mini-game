@@ -1,0 +1,28 @@
+/* src/ant-simulator/AntSimulator.css */
+
+.simulator-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #000;
+  color: white;
+  font-family: sans-serif;
+}
+
+.simulator-title {
+  margin-bottom: 10px;
+}
+
+.simulator-description {
+  color: #aaa;
+  margin-bottom: 20px;
+}
+
+.simulator-canvas {
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 255, 100, 0.1);
+  background-color: #111; /* 캔버스 기본 배경색 */
+}
