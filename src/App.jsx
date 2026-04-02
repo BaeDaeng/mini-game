@@ -20,6 +20,7 @@ import RandomCardRpg from './random-card-rpg/components/MainLayout.jsx';
 import FindMine from './find-mine/FindMine.jsx';
 import InventoryPuzzle from './inventory-puzzle/GameStart.jsx';
 import AntSimulator from './ant-simulator/index.jsx';
+import RagdollGame from './ragdoll-game/RagdollGame.jsx';
 import './App.css'; 
 
 // 메인 로비 화면 컴포넌트
@@ -47,6 +48,7 @@ const MainLobby = () => {
     { path: '/findmine', title: '색상 지뢰 찾기', icon: '💣', img: '/images/find-mine.png', color: '#589aaa', disabled: true },
     { path: '/inventorypuzzle', title: '인벤토리 로그라이크', icon: '💼', img: '/images/inventory-puzzle.png', color: '#812b03', disabled: true },
     { path: '/antsimulator', title: '개미 시뮬레이터', icon: '🐜', img: '/images/ant-simulator.png', color: '#812b03', disabled: true },
+    { path: '/ragdollgame', title: '레그돌 전투', icon: '🐜', img: '/images/ragdoll-game.png', color: '#d42d27', disabled: true },
   ];
 
   return (
@@ -130,6 +132,7 @@ const App = () => {
         <Route path="/findmine" element={<FindMine />} />
         <Route path="/inventorypuzzle" element={<InventoryPuzzle />} />
         <Route path="/antsimulator" element={<AntSimulator />} />
+        <Route path="/ragdollgame" element={<RagdollGame />} />
       </Routes>
     </Router>
   );

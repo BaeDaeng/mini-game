@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
+    "@react-three/rapier": "^2.2.0",
     "@types/three": "^0.183.1",
     "bootstrap": "^5.3.8",
     "firebase": "^12.10.0",
