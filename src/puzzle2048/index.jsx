@@ -98,45 +98,45 @@ export default function Puzzle2048() {
 
   return (
     // 최상위 컨테이너에 touch-action: none을 주어 모바일에서 전체 화면 스크롤링을 방지합니다.
-    <div className="puzzle-container" style={{ touchAction: 'none', userSelect: 'none' }}>
-      <div className="header">
-        <button className="reset-btn" onClick={handleReset}>New Game</button>
-        <div className="scoreboard">
-          <div className="score-title">Score</div>
-          <div className="score-value">{score}</div>
+    <div className="p2048-container" style={{ touchAction: 'none', userSelect: 'none' }}>
+      <div className="p2048-header">
+        <button className="p2048-reset-btn" onClick={handleReset}>New Game</button>
+        <div className="p2048-scoreboard">
+          <div className="p2048-score-title">Score</div>
+          <div className="p2048-score-value">{score}</div>
         </div>
       </div>
       
       {/* 이제 board-wrapper에는 마우스 이벤트가 필요 없습니다 */}
-      <div className="board-wrapper">
+      <div className="p2048-board-wrapper">
         {gameOver && (
-          <div className="game-over-overlay">
+          <div className="p2048-game-over-overlay">
             <h2>Game Over!</h2>
-            <button className="reset-btn" onClick={handleReset}>Try Again</button>
+            <button className="p2048-reset-btn" onClick={handleReset}>Try Again</button>
           </div>
         )}
 
-        <div className="grid-bg">
+        <div className="p2048-grid-bg">
           {Array(16).fill(null).map((_, i) => (
-            <div key={i} className="grid-cell"></div>
+            <div key={i} className="p2048-grid-cell"></div>
           ))}
         </div>
 
-        <div className="tile-container">
+        <div className="p2048-tile-container">
           {activeTiles.map((tile) => {
             const x = 10 + tile.c * 90;
             const y = 10 + tile.r * 90;
-            const bgClass = `tile-${tile.val}`;
-            const textClass = tile.val >= 100 ? 'tile-small-text' : '';
-            const animClass = tile.isNew ? 'tile-new' : tile.isMerged ? 'tile-merged' : '';
+            const bgClass = `p2048-tile-${tile.val}`;
+            const textClass = tile.val >= 100 ? 'p2048-tile-small-text' : '';
+            const animClass = tile.isNew ? 'p2048-tile-new' : tile.isMerged ? 'p2048-tile-merged' : '';
 
             return (
               <div
                 key={tile.id}
-                className={`tile-wrapper ${animClass}`}
+                className={`p2048-tile-wrapper ${animClass}`}
                 style={{ transform: `translate(${x}px, ${y}px)` }}
               >
-                <div className={`tile-inner ${bgClass} ${textClass}`}>
+                <div className={`p2048-tile-inner ${bgClass} ${textClass}`}>
                   {tile.val}
                 </div>
               </div>

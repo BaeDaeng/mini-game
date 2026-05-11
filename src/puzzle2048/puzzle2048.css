@@ -1,12 +1,13 @@
-.puzzle-container {
+.p2048-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   font-family: 'Arial', sans-serif;
   margin-top: 50px;
+  color: #776e65;
 }
 
-.header {
+.p2048-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -14,7 +15,7 @@
   margin-bottom: 20px;
 }
 
-.scoreboard {
+.p2048-scoreboard {
   background-color: #bbada0;
   color: white;
   padding: 10px 20px;
@@ -23,10 +24,10 @@
   text-align: center;
 }
 
-.score-title { font-size: 12px; color: #eee4da; text-transform: uppercase; }
-.score-value { font-size: 24px; }
+.p2048-score-title { font-size: 12px; color: #eee4da; text-transform: uppercase; }
+.p2048-score-value { font-size: 24px; }
 
-.reset-btn {
+.p2048-reset-btn {
   padding: 10px 20px;
   font-size: 16px;
   font-weight: bold;
@@ -36,10 +37,13 @@
   border-radius: 5px;
   cursor: pointer;
 }
-.reset-btn:hover { background-color: #9f8b77; }
+.p2048-reset-btn:hover {
+  background-color: #9f8b77;
+  border-color: transparent;
+}
 
 /* 배경 그리드와 이동 레이어를 분리하기 위해 absolute/relative 활용 */
-.board-wrapper {
+.p2048-board-wrapper {
   position: relative;
   background-color: #bbada0;
   padding: 10px;
@@ -47,37 +51,40 @@
   width: 370px; 
   height: 370px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
-.grid-bg {
+.p2048-grid-bg {
   display: grid;
   grid-template-columns: repeat(4, 80px);
   grid-gap: 10px;
 }
 
-.grid-cell {
+.p2048-grid-cell {
   width: 80px;
   height: 80px;
   background-color: #cdc1b4;
   border-radius: 5px;
 }
 
-.tile-container {
+.p2048-tile-container {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   pointer-events: none;
+  z-index: 1;
 }
 
 /* 타일의 위치 이동을 담당 (Sliding) */
-.tile-wrapper {
+.p2048-tile-wrapper {
   position: absolute;
   width: 80px;
   height: 80px;
   transition: transform 0.15s ease-in-out; 
+  will-change: transform;
 }
 
 /* 타일의 디자인과 팝 애니메이션을 담당 */
-.tile-inner {
+.p2048-tile-inner {
   width: 100%;
   height: 100%;
   display: flex;
@@ -88,23 +95,24 @@
   border-radius: 5px;
   background-color: #cdc1b4;
   color: #776e65;
+  box-sizing: border-box;
 }
 
 /* 글자 크기 조절 */
-.tile-small-text { font-size: 24px; }
+.p2048-tile-small-text { font-size: 24px; }
 
 /* 숫자별 타일 배경색 */
-.tile-2 { background-color: #eee4da; }
-.tile-4 { background-color: #ede0c8; }
-.tile-8 { background-color: #f2b179; color: #f9f6f2; }
-.tile-16 { background-color: #f59563; color: #f9f6f2; }
-.tile-32 { background-color: #f67c5f; color: #f9f6f2; }
-.tile-64 { background-color: #f65e3b; color: #f9f6f2; }
-.tile-128 { background-color: #edcf72; color: #f9f6f2; }
-.tile-256 { background-color: #edcc61; color: #f9f6f2; }
-.tile-512 { background-color: #edc850; color: #f9f6f2; }
-.tile-1024 { background-color: #edc53f; color: #f9f6f2; }
-.tile-2048 { background-color: #edc22e; color: #f9f6f2; }
+.p2048-tile-2 { background-color: #eee4da; }
+.p2048-tile-4 { background-color: #ede0c8; }
+.p2048-tile-8 { background-color: #f2b179; color: #f9f6f2; }
+.p2048-tile-16 { background-color: #f59563; color: #f9f6f2; }
+.p2048-tile-32 { background-color: #f67c5f; color: #f9f6f2; }
+.p2048-tile-64 { background-color: #f65e3b; color: #f9f6f2; }
+.p2048-tile-128 { background-color: #edcf72; color: #f9f6f2; }
+.p2048-tile-256 { background-color: #edcc61; color: #f9f6f2; }
+.p2048-tile-512 { background-color: #edc850; color: #f9f6f2; }
+.p2048-tile-1024 { background-color: #edc53f; color: #f9f6f2; }
+.p2048-tile-2048 { background-color: #edc22e; color: #f9f6f2; }
 
 /* 애니메이션 키프레임 */
 @keyframes appear {
@@ -118,10 +126,10 @@
   100% { transform: scale(1); }
 }
 
-.tile-new .tile-inner { animation: appear 0.2s ease-in-out forwards; }
-.tile-merged .tile-inner { animation: pop 0.2s ease-in-out forwards; }
+.p2048-tile-new .p2048-tile-inner { animation: appear 0.2s ease-in-out forwards; }
+.p2048-tile-merged .p2048-tile-inner { animation: pop 0.2s ease-in-out forwards; }
 
-.game-over-overlay {
+.p2048-game-over-overlay {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   background-color: rgba(238, 228, 218, 0.73);
@@ -133,4 +141,12 @@
   z-index: 10;
   pointer-events: auto;
 }
-.game-over-overlay h2 { font-size: 40px; color: #776e65; margin-bottom: 20px; }
+.p2048-game-over-overlay h2 { font-size: 40px; color: #776e65; margin-bottom: 20px; }
+
+@media (max-width: 420px) {
+  .p2048-container {
+    margin-top: 24px;
+    transform: scale(0.86);
+    transform-origin: top center;
+  }
+}
